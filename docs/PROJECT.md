@@ -4,7 +4,7 @@ Living document. **Read this first in any new session, and update it as work
 progresses.**
 
 - **Project:** website for Aegir, an Oxford beer society
-- **Current stage:** 1 — design exploration (three directions built, awaiting selection)
+- **Current stage:** 1 — design exploration, round 2 (six directions built, awaiting selection)
 - **Last updated:** 2026-10-27
 
 ---
@@ -62,16 +62,19 @@ which links to everything. Visiting `/` redirects there.
 
 | Route | What it is |
 |---|---|
-| `/design-review/` | Comparison page — all three directions side by side |
-| `/design-review/a/` | Direction A homepage — "Ink & Paper" |
-| `/design-review/b/` | Direction B homepage — "Pint Club" |
-| `/design-review/c/` | Direction C homepage — "Common Room" |
-| `/design-review/{a,b,c}/events/michaelmas-tasting/` | The same event in each direction |
+| `/design-review/` | Comparison page — all six directions, grouped by family |
+| `/design-review/b/` | **B — "Pint Club"** · the selected direction |
+| `/design-review/b1/` | **B1 — "Daylight"** · B lifted onto paper |
+| `/design-review/b2/` | **B2 — "Broadsheet Club"** · the A × B hybrid |
+| `/design-review/b3/` | **B3 — "Late"** · B pushed dark and loud |
+| `/design-review/a/` | A — "Ink & Paper" · kept for reference |
+| `/design-review/c/` | C — "Common Room" · ruled out in review, kept for reference |
+| `/design-review/{a,b,b1,b2,b3,c}/events/michaelmas-tasting/` | The same event in each direction |
 
 The other three event slugs — `brewery-trip`, `welcome-drinks`, `winter-dinner` —
-also work in all three directions.
+work in all six directions.
 
-A pill at the bottom of every prototype jumps between A, B and C.
+A pill at the bottom of every prototype jumps between all six directions.
 
 ```bash
 npm run build        # static output into dist/
@@ -106,39 +109,57 @@ Dependencies are Astro plus three `@fontsource-variable` font packages. Nothing 
 
 ---
 
-## 5. The three directions
+## 5. The directions
 
-All three import the same `src/data/sample-content.ts`, so nothing but the design
-differs. They vary on five axes, not just palette.
+All of them import the same `src/data/sample-content.ts`, so nothing but the
+design differs.
 
-### A — "Ink & Paper" · illustration-led editorial broadsheet
+### Round 2 — the B family
 
-Cream `#F9F1DE` ground matching the illustrations exactly, so `graphic-1` bleeds
-off the hero with no visible edge. Fraunces display serif, letterspaced masthead
-between rules, nav centred beneath. Events as a **dated ledger** with stacked
-day/month blocks. Announcements as a hanging-indent noticeboard. One photograph,
-as a full-width band. Event detail is an article with a drop cap and a facts list.
+B was selected in review. Three variants were built from it, spanning lighter to
+darker, with B2 as the requested A × B hybrid.
 
-### B — "Pint Club" · warm, poster-ish, photo-forward
+#### B — "Pint Club" · the original selection
 
 Alternating ink and cream sections with amber as the active colour. Archivo in a
-condensed all-caps cut for headings. **Sticky top bar; full-screen overlay menu
-on mobile.** Hero is a full-bleed photograph under an ink scrim with the pint
-roundel as a badge. Events as a **featured card plus a grid** with amber date
-chips. Full-width amber mailing-list band. Event detail is poster-style with a
-sticky booking sidebar.
+condensed all-caps cut. Sticky top bar; full-screen overlay menu on mobile. Hero
+is a full-bleed photograph under an ink scrim. Events as a featured card plus a
+grid. Full-width amber mailing band.
 
-### C — "Common Room" · quiet, structured, institutional
+#### B1 — "Daylight" · B lifted onto paper
 
-Near-white `#FCFBF8` with cream as an accent, thin rules, generous whitespace.
-Source Serif 4 body with Archivo labels. **Persistent left sidebar navigation on
-desktop, collapsing to a top bar on mobile** — a genuinely different model from A
-and B. No image hero. Events as a real **termcard table** (date, event, venue,
-guests, status), which is how Oxford societies actually publish. Illustrations
-small and sparing. Event detail is a structured brief: summary box, prose, then
-how to attend.
+Everything B does, but cream-dominant instead of ink-dominant. Display type is
+normal-width and **mixed case** rather than condensed caps. Hero is a split: type
+left, the bottle-walk illustration right, the whole band painted with that
+artwork's own paper. Events as **ticket rows** — a perforated date stub, a
+thumbnail, and a status chip. Mailing CTA inverts to an ink band. The friendliest
+of the family, and the one where illustration and photography coexist most easily.
 
----
+#### B2 — "Broadsheet Club" · the A × B hybrid
+
+From A: Fraunces display serif, the centred masthead between rules, cream ground,
+ruled editorial lists, the drop cap. From B: amber as the active colour, a
+photo-led featured event, sticky nav with a working mobile overlay, status chips,
+a full-width CTA band. Events are **B's featured card above A's ruled ledger**,
+which suits a termcard where one event matters more than the rest. The most
+credible of the family without losing B's warmth.
+
+#### B3 — "Late" · B pushed as far as it goes
+
+Near-black throughout, amber doing all the signalling, Archivo at
+**ultra-condensed** 64% width and poster scale. Events as **numbered poster rows**
+(01, 02, …) with large photography. Because the ground is dark, the illustrations
+sit in paper-coloured plates that punch out of it — this is where exact colour
+matching matters most, since any mismatch shows instantly against ink.
+
+### Round 1 — kept for reference
+
+- **A — "Ink & Paper"** · illustration-led editorial broadsheet. Cream ground
+  matching the artwork, Fraunces masthead, events as a dated ledger. Most of what
+  worked here now lives in B2.
+- **C — "Common Room"** · quiet and institutional, left sidebar nav, events as a
+  termcard table. Ruled out in review. The termcard table is the one idea worth
+  salvaging if a later page needs to list many events densely.
 
 ## 6. Decisions and why
 
@@ -150,6 +171,9 @@ how to attend.
 | Page background set to the illustrations' own cream | The artwork is JPEG with no alpha. Matching the ground makes it read as drawn onto the page. The single highest-leverage design move. |
 | Self-hosted variable fonts | Previews work offline; no third-party requests on the eventual live site. |
 | Multi-axis font builds (`fraunces/full.css`, `archivo/wdth.css`) | The default exports ship weight only. Without these, A loses Fraunces' `WONK` axis and **B's condensed headings silently render at normal width**. |
+| Illustration grounds driven by `src/config/artwork.ts` | Each file's background was colour-picked from the web-ready JPEG. Any section showing an illustration uses that file's exact value. Three distinct creams are in play, so one shared variable was not enough. |
+| Dropped `mix-blend-mode: multiply` on all artwork | It was added as a guard against JPEG edge banding, but multiplying the artwork's cream against an identical page cream darkens it by ~29/255 — producing the visible rectangle it was meant to prevent. The matched ground replaces it. |
+| Avoided `define:vars` for the paper colours | Combined with `is:global` it stamped the custom properties onto ~50 elements per page. Replaced with one generated declaration emitted in the head. |
 | Plain-text "Aegir" wordmark | The real logo has not been supplied, and the brief forbids inventing a substitute. Driven by one config value so the real file is a one-line change. |
 | Four photographs, used sparingly | Only four of ten read as an Oxford beer society. See `ASSETS.md` for what was held back and why. |
 | Committee roles with no names | No invented people. Placeholders read "Name to be confirmed". |
@@ -157,14 +181,19 @@ how to attend.
 
 ### Accessibility
 
-Every foreground/background pair was checked against WCAG AA. Four failed on
-first pass and were corrected: A's amber and faint-meta greys, B's `amber-deep`
-label colour, and A's waitlist pill (white on amber, 2.95:1 — now ink on amber at
-10.63:1). The brand amber `#F0BC2E` is retained wherever it sits on ink or
-behind dark text; a darkened `#866918` is used for small text on cream. All pairs
-now pass.
+Every foreground/background pair is checked against WCAG AA.
 
----
+Round 1 corrected four failures: A's amber and faint-meta greys, B's
+`amber-deep` label colour, and A's waitlist pill (white on amber at 2.95:1, now
+ink on amber at 10.63:1).
+
+Round 2 corrected one more: the fact-label grey `#746C5F` passed on the page
+cream but only reached 4.22:1 on the shaded fact boxes in B1 and B2. It is now
+`#6E675A`, which clears 4.5:1 on the page cream, the shade, and both of the
+other artwork papers. All pairs across all six directions now pass.
+
+The brand amber `#F0BC2E` is kept wherever it sits on ink or behind dark text;
+the darkened `#866918` is used for small text on cream.
 
 ## 7. Project structure
 
@@ -174,14 +203,15 @@ docs/ASSETS.md               asset inventory, roles, flags
 reference-assets/            supplied originals — GITIGNORED, local only
 public/media/                web-ready copies — committed
 src/config/site.ts           name, logo (null), mailing-list URL, nav
+src/config/artwork.ts        artwork paths + SAMPLED background colours
 src/data/sample-content.ts   SHARED sample content — all three import this
 src/components/PrototypeBar.astro
 src/styles/reset.css
-src/layouts/Direction{A,B,C}.astro
+src/layouts/Direction{A,B,B1,B2,B3,C}.astro
 src/pages/index.astro                          redirects to /design-review/
 src/pages/design-review/index.astro            comparison page
-src/pages/design-review/{a,b,c}/index.astro
-src/pages/design-review/{a,b,c}/events/[slug].astro
+src/pages/design-review/{a,b,b1,b2,b3,c}/index.astro
+src/pages/design-review/{a,b,b1,b2,b3,c}/events/[slug].astro
 ```
 
 ---
@@ -204,17 +234,17 @@ src/pages/design-review/{a,b,c}/events/[slug].astro
 headless capture is not possible on this machine — the installed Chrome 121
 segfaults on macOS 25.5 and Brave's headless mode hangs. The prototypes were
 verified by building and serving them and by checking every route, link, image
-reference and colour pair programmatically, but **they have not been viewed by a
-human or a browser**. Please open them and look before choosing. Responsive
-behaviour in particular is reasoned-about, not observed.
+reference, paper colour and contrast pair programmatically, but **they have not
+been viewed by a human or a browser**. Please open them and look before
+choosing. Responsive behaviour in particular is reasoned-about, not observed.
 
 ---
 
 ## 9. Next steps
 
-1. Presidents review `/design-review/` and choose a direction.
-2. Promote the chosen direction to the real site routes; delete the other two
-   and the `design-review` tree.
+1. Presidents review `/design-review/` and choose between **B, B1, B2 and B3**.
+2. Promote the chosen direction to the real site routes; delete the others and
+   the `design-review` tree.
 3. Build out the full Events, About/Committee and Announcements pages.
 4. Wire up the hosted Pages CMS.
 5. Configure GitHub Pages deployment — this is when `site` and `base` get set in

@@ -8,14 +8,17 @@
  * lives on /design-review/, outside the society-facing designs.
  */
 interface Props {
-  current: 'a' | 'b' | 'c';
+  current: 'a' | 'b' | 'b1' | 'b2' | 'b3' | 'c';
 }
 const { current } = Astro.props;
 
 const directions = [
-  { key: 'a', name: 'Ink & Paper' },
-  { key: 'b', name: 'Pint Club' },
-  { key: 'c', name: 'Common Room' },
+  { key: 'a',  label: 'A',  name: 'Ink & Paper' },
+  { key: 'b',  label: 'B',  name: 'Pint Club' },
+  { key: 'b1', label: 'B1', name: 'Daylight' },
+  { key: 'b2', label: 'B2', name: 'Broadsheet Club' },
+  { key: 'b3', label: 'B3', name: 'Late' },
+  { key: 'c',  label: 'C',  name: 'Common Room' },
 ] as const;
 ---
 
@@ -28,7 +31,7 @@ const directions = [
         class="proto-bar__link"
         aria-current={d.key === current ? 'page' : undefined}
         title={d.name}
-      >{d.key.toUpperCase()}</a>
+      >{d.label}</a>
     ))}
   </div>
   <a href="/design-review/" class="proto-bar__back">Compare&nbsp;all</a>
@@ -71,8 +74,9 @@ const directions = [
   .proto-bar__link {
     display: grid;
     place-items: center;
-    width: 1.7rem;
+    min-width: 1.7rem;
     height: 1.7rem;
+    padding-inline: 0.4rem;
     border-radius: 999px;
     font-weight: 600;
     text-decoration: none;

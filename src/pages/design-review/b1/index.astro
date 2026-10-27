@@ -1,0 +1,249 @@
+---
+import DirectionB1 from '../../../layouts/DirectionB1.astro';
+import { events, announcements, committee, copy, formatDate, dayNumber, monthShort } from '../../../data/sample-content';
+import { site } from '../../../config/site';
+import { artwork } from '../../../config/artwork';
+
+const next = events[0]!;
+---
+
+<DirectionB1 title="Home">
+  <!-- Hero: type on the left, bottle-walk illustration on the right. The whole
+       band is painted with that illustration's own paper colour. -->
+  <section class="hero">
+    <div class="shell hero__grid">
+      <div>
+        <p class="eyebrow">Michaelmas termcard out now</p>
+        <h1 class="display hero__head">{copy.introHeading}</h1>
+        <p class="hero__lede">{copy.introLead}</p>
+        <p class="hero__body">{copy.introBody}</p>
+        <div class="hero__actions">
+          <a href="#events" class="btn btn--amber">What&rsquo;s on this term</a>
+          <a href="#mailing" class="btn btn--ghost">Join the mailing list</a>
+        </div>
+      </div>
+      <img
+        class="hero__art"
+        src={artwork.bottleWalk.src} alt={artwork.bottleWalk.alt}
+        width={artwork.bottleWalk.width} height={artwork.bottleWalk.height}
+        fetchpriority="high" decoding="async"
+      />
+    </div>
+  </section>
+
+  <!-- Next-up ticket -->
+  <section class="shell">
+    <a class="ticket" href={`/design-review/b1/events/${next.slug}/`}>
+      <span class="ticket__stub">
+        <span class="ticket__day">{dayNumber(next.date)}</span>
+        <span class="ticket__mon">{monthShort(next.date)}</span>
+      </span>
+      <span class="ticket__body">
+        <span class="eyebrow">Next event</span>
+        <span class="ticket__title">{next.title}</span>
+        <span class="ticket__meta">{next.startTime} &middot; {next.venue}</span>
+      </span>
+      <span class="ticket__go">Details &rarr;</span>
+    </a>
+  </section>
+
+  <!-- Events as ticket rows, not a card grid -->
+  <section id="events" class="section">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">Termcard</p>
+        <h2 class="display">Everything this term</h2>
+        <span class="example-flag">Example data</span>
+      </div>
+      <ul class="rows">
+        {events.map((ev) => (
+          <li class="row">
+            <a class="row__thumb" href={`/design-review/b1/events/${ev.slug}/`}>
+              <img src={ev.image!} alt={ev.imageAlt!} width="1050" height="1400" loading="lazy" decoding="async" />
+            </a>
+            <div class="row__date">
+              <span class="row__day">{dayNumber(ev.date)}</span>
+              <span class="row__mon">{monthShort(ev.date)}</span>
+            </div>
+            <div class="row__body">
+              <h3 class="row__title"><a href={`/design-review/b1/events/${ev.slug}/`}>{ev.title}</a></h3>
+              <p class="row__summary">{ev.summary}</p>
+              <p class="row__meta">{ev.startTime}{ev.endTime ? `–${ev.endTime}` : ''} &middot; {ev.venue} &middot; {ev.price}</p>
+            </div>
+            <div class="row__end">
+              <span class={`chip chip--${ev.status.toLowerCase().replace(/\s+/g, '-')}`}>{ev.status}</span>
+              <a class="row__go" href={`/design-review/b1/events/${ev.slug}/`}>Details &rarr;</a>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p class="undernote">
+        <a href="#" data-placeholder title="A full archive of past events is not part of this prototype">Past events archive</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Announcements -->
+  <section id="announcements" class="section section--shade">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">Noticeboard</p>
+        <h2 class="display">Announcements</h2>
+      </div>
+      <ul class="notes">
+        {announcements.map((a) => (
+          <li class="note">
+            <p class="note__date">{formatDate(a.date)}</p>
+            <h3 class="note__title">{a.title}</h3>
+            <p class="note__body">{a.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- About — ground is the disco illustration's own paper -->
+  <section id="about" class="section section--disco">
+    <div class="shell about">
+      <div>
+        <p class="eyebrow">Who we are</p>
+        <h2 class="display">{copy.aboutHeading}</h2>
+        <p class="about__lede">{copy.aboutBody}</p>
+        <a class="btn btn--ghost" href="#" data-placeholder title="A full About page is not part of this prototype">More about Aegir</a>
+      </div>
+      <img
+        class="about__art"
+        src={artwork.disco.src} alt={artwork.disco.alt}
+        width={artwork.disco.width} height={artwork.disco.height}
+        loading="lazy" decoding="async"
+      />
+    </div>
+
+    <div class="shell">
+      <h3 class="crew__head">The committee</h3>
+      <ul class="crew">
+        {committee.map((c) => (
+          <li class="crew__item">
+            <p class="crew__role">{c.role}</p>
+            <p class="crew__holder">{c.holder}</p>
+            <p class="crew__remit">{c.remit}</p>
+          </li>
+        ))}
+      </ul>
+      <p class="crew__note">{copy.committeeNote}</p>
+    </div>
+  </section>
+
+  <!-- Mailing: ink band, the inverse of B's amber band -->
+  <section id="mailing" class="mailband">
+    <div class="shell mailband__inner">
+      <img
+        class="mailband__badge"
+        src={artwork.pintRoundel.src} alt={artwork.pintRoundel.alt}
+        width={artwork.pintRoundel.width} height={artwork.pintRoundel.height}
+        loading="lazy" decoding="async"
+      />
+      <div>
+        <h2 class="display mailband__head">{copy.mailingHeading}</h2>
+        <p class="mailband__body">{copy.mailingBody}</p>
+        <a
+          class="btn btn--amber"
+          href={site.mailingListUrl ?? '#'}
+          data-placeholder={site.mailingListUrl ? undefined : true}
+          title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+        >{copy.mailingCta}</a>
+      </div>
+    </div>
+  </section>
+</DirectionB1>
+
+<style is:global>
+  /* Hero band is painted with the bottle-walk illustration's own paper. */
+  .dir-b1 .hero { background: var(--paper); padding: clamp(2.5rem, 5vw, 4.5rem) 0 clamp(2rem, 4vw, 3.5rem); }
+  .dir-b1 .hero__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+  .dir-b1 .hero__head { font-size: clamp(2.25rem, 1.3rem + 3.8vw, 4rem); max-width: 16ch; margin: 0.9rem 0 1.1rem; }
+  .dir-b1 .hero__lede { font-size: clamp(1.0625rem, 1rem + 0.45vw, 1.25rem); line-height: 1.55; max-width: 44ch; margin-bottom: 0.9rem; }
+  .dir-b1 .hero__body { color: var(--ink-soft); max-width: 46ch; line-height: 1.65; }
+  .dir-b1 .hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+  .dir-b1 .hero__art { width: 100%; height: auto; max-width: 26rem; margin-inline-start: auto; }
+
+  /* ---------- Ticket ---------- */
+  .dir-b1 .ticket { display: flex; align-items: stretch; gap: 0; text-decoration: none; border: 2px solid var(--ink); background: var(--amber); margin-top: 0.5rem; }
+  .dir-b1 .ticket:hover { background: var(--ink); color: var(--paper); }
+  .dir-b1 .ticket:hover .ticket__stub { border-right-color: var(--paper); }
+  .dir-b1 .ticket:hover .eyebrow, .dir-b1 .ticket:hover .ticket__meta { color: inherit; }
+  .dir-b1 .ticket__stub { display: grid; place-content: center; justify-items: center; padding: 0.9rem 1.2rem; border-right: 2px dashed var(--ink); line-height: 1; }
+  .dir-b1 .ticket__day { font-weight: 800; font-size: 1.875rem; letter-spacing: -0.03em; }
+  .dir-b1 .ticket__mon { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.2rem; }
+  .dir-b1 .ticket__body { display: grid; gap: 0.15rem; align-content: center; padding: 0.9rem 1.2rem; flex: 1; }
+  .dir-b1 .ticket__title { font-weight: 700; font-size: 1.125rem; }
+  .dir-b1 .ticket__meta { font-size: 0.8125rem; color: var(--ink-soft); }
+  .dir-b1 .ticket__go { display: grid; place-content: center; padding: 0.9rem 1.4rem; font-size: 0.8125rem; font-weight: 700; white-space: nowrap; }
+
+  /* ---------- Event rows ---------- */
+  .dir-b1 .rows { list-style: none; padding: 0; display: grid; gap: 1rem; }
+  .dir-b1 .row { display: grid; grid-template-columns: 7rem 4rem minmax(0, 1fr) 9rem; gap: 1.25rem; align-items: center; border: 2px solid var(--ink); background: var(--paper); padding: 0.75rem; }
+  .dir-b1 .row:hover { background: var(--shade); }
+  .dir-b1 .row__thumb { display: block; overflow: hidden; border: 1px solid var(--ink); }
+  .dir-b1 .row__thumb img { width: 100%; height: 5.5rem; object-fit: cover; }
+  .dir-b1 .row__date { display: grid; justify-items: center; line-height: 1; border-right: 2px dashed var(--ink); padding-right: 1rem; }
+  .dir-b1 .row__day { font-weight: 800; font-size: 1.75rem; letter-spacing: -0.03em; }
+  .dir-b1 .row__mon { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.2rem; }
+  .dir-b1 .row__title { font-size: 1.125rem; font-weight: 700; line-height: 1.25; margin-bottom: 0.3rem; }
+  .dir-b1 .row__title a { text-decoration: none; }
+  .dir-b1 .row__title a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .dir-b1 .row__summary { font-size: 0.875rem; color: var(--ink-soft); line-height: 1.5; margin-bottom: 0.35rem; max-width: 52ch; }
+  .dir-b1 .row__meta { font-size: 0.75rem; color: var(--ink-faint); }
+  .dir-b1 .row__end { display: grid; justify-items: end; gap: 0.6rem; }
+  .dir-b1 .row__go { font-size: 0.8125rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .dir-b1 .row__go:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .dir-b1 .undernote { margin-top: 1.25rem; font-size: 0.875rem; }
+
+  /* ---------- Announcements ---------- */
+  .dir-b1 .notes { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+  .dir-b1 .note { background: var(--paper); border: 2px solid var(--ink); border-top-width: 6px; border-top-color: var(--amber); padding: 1.1rem 1.25rem; }
+  .dir-b1 .note__date { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--amber-text); margin-bottom: 0.5rem; }
+  .dir-b1 .note__title { font-size: 1.125rem; font-weight: 700; line-height: 1.25; margin-bottom: 0.45rem; }
+  .dir-b1 .note__body { font-size: 0.9375rem; color: var(--ink-soft); line-height: 1.6; }
+
+  /* ---------- About + committee ---------- */
+  .dir-b1 .about { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+  .dir-b1 .about__lede { font-size: 1.125rem; line-height: 1.6; margin: 1rem 0 1.75rem; max-width: 50ch; }
+  .dir-b1 .about__art { width: 100%; height: auto; }
+  .dir-b1 .crew__head { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; margin: 3rem 0 1.1rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--ink); }
+  .dir-b1 .crew { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .dir-b1 .crew__item { border: 2px solid var(--ink); border-left-width: 6px; border-left-color: var(--amber); padding: 1rem 1.15rem; }
+  .dir-b1 .crew__role { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--amber-text); margin-bottom: 0.4rem; }
+  .dir-b1 .crew__holder { font-size: 1.0625rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .dir-b1 .crew__remit { font-size: 0.8125rem; color: var(--ink-soft); line-height: 1.5; }
+  .dir-b1 .crew__note { margin-top: 1.25rem; font-size: 0.8125rem; color: var(--ink-soft); max-width: 52ch; line-height: 1.6; }
+
+  /* ---------- Mailing ---------- */
+  .dir-b1 .mailband { background: var(--ink); color: var(--on-ink); padding: clamp(2.5rem, 5vw, 4rem) 0; }
+  .dir-b1 .mailband__inner { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+  /* The roundel keeps its own paper behind it even on the dark band. */
+  .dir-b1 .mailband__badge { width: 100%; height: auto; background: var(--paper-roundel); border-radius: 50%; }
+  .dir-b1 .mailband__head { font-size: clamp(1.875rem, 1.3rem + 2.2vw, 2.75rem); margin-bottom: 0.65rem; }
+  .dir-b1 .mailband__body { max-width: 48ch; line-height: 1.65; color: #ddd4bd; margin-bottom: 1.5rem; }
+  .dir-b1 .mailband .btn--amber { border-color: var(--amber); }
+  .dir-b1 .mailband .btn--amber:hover { background: var(--on-ink); color: var(--ink); border-color: var(--on-ink); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 62rem) {
+    .dir-b1 .hero__grid { grid-template-columns: 1fr; }
+    .dir-b1 .hero__art { order: -1; max-width: 15rem; margin-inline: auto; }
+    .dir-b1 .notes, .dir-b1 .crew { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dir-b1 .about { grid-template-columns: 1fr; }
+    .dir-b1 .about__art { max-width: 11rem; }
+    .dir-b1 .row { grid-template-columns: 5rem 3.5rem minmax(0, 1fr); }
+    .dir-b1 .row__end { grid-column: 1 / -1; justify-items: start; display: flex; align-items: center; gap: 1rem; }
+  }
+  @media (max-width: 44rem) {
+    .dir-b1 .notes, .dir-b1 .crew { grid-template-columns: 1fr; }
+    .dir-b1 .row { grid-template-columns: 3.5rem minmax(0, 1fr); gap: 0.9rem; }
+    .dir-b1 .row__thumb { display: none; }
+    .dir-b1 .ticket__go { display: none; }
+    .dir-b1 .mailband__inner { grid-template-columns: 1fr; }
+    .dir-b1 .mailband__badge { max-width: 7rem; }
+  }
+</style>

@@ -166,7 +166,8 @@ const next = events[0]!;
 
 <style is:global>
   /* ---------- Hero ---------- */
-  .dir-a .hero { padding-top: clamp(2.5rem, 5vw, 4.5rem); }
+  /* bottle-walk paper #F9F1DE — matches --paper, so the hero needs no override. */
+  .dir-a .hero { padding-top: clamp(2.5rem, 5vw, 4.5rem); background: #F9F1DE; }
   .dir-a .hero__grid {
     display: grid;
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
@@ -186,11 +187,10 @@ const next = events[0]!;
   .dir-a .hero__lede { margin-bottom: 1rem; max-width: 42ch; }
   .dir-a .hero__body { color: var(--ink-soft); max-width: 46ch; }
   .dir-a .hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
-  /* The illustration's own background is the page background, so it bleeds
-     with no visible edge. mix-blend-mode guards against JPEG edge banding. */
+  /* The hero section is painted with this illustration's own sampled paper
+     colour, so the artwork bleeds with no visible edge and no blend trick. */
   .dir-a .hero__art img {
     width: 100%; height: auto;
-    mix-blend-mode: multiply;
     margin-inline-start: auto;
     max-width: 30rem;
   }
@@ -292,8 +292,9 @@ const next = events[0]!;
   }
   .dir-a .notice__title { font-weight: 600; font-size: 1.0625rem; }
   .dir-a .notice__item dd { margin-inline-start: 7rem; color: var(--ink-soft); max-width: 54ch; }
-  .dir-a .notice__aside { text-align: center; }
-  .dir-a .notice__aside img { mix-blend-mode: multiply; width: 100%; height: auto; margin-bottom: 0.75rem; }
+  /* disco paper #F9F1DE */
+  .dir-a .notice__aside { text-align: center; background: #F9F1DE; padding: 1rem 1rem 0.75rem; }
+  .dir-a .notice__aside img { width: 100%; height: auto; margin-bottom: 0.75rem; }
 
   /* ---------- About ---------- */
   .dir-a .about__grid {
@@ -321,13 +322,16 @@ const next = events[0]!;
   .dir-a .band img { width: 100%; height: clamp(14rem, 32vw, 24rem); object-fit: cover; }
 
   /* ---------- Mailing ---------- */
+  /* pint-roundel paper #F8EFDE — a hair warmer than the page, so the badge
+     sits in its own matched block rather than on the page cream. */
+  .dir-a .mailing__badge { background: #F8EFDE; }
   .dir-a .mailing {
     display: grid; grid-template-columns: minmax(0, 1fr) 11rem;
     gap: clamp(1.5rem, 4vw, 3rem); align-items: center;
   }
   .dir-a .mailing__text h2 { margin-bottom: 0.9rem; }
   .dir-a .mailing__text .lede { max-width: 48ch; margin-bottom: 1.5rem; }
-  .dir-a .mailing__badge { mix-blend-mode: multiply; width: 100%; height: auto; }
+  .dir-a .mailing__badge { width: 100%; height: auto; }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 60rem) {

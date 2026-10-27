@@ -16,28 +16,59 @@ consistent palette and are easily the strongest material supplied.
 
 | File | Pixels | Alpha | Subject | Role in the prototypes |
 |---|---|---|---|---|
-| `graphics/graphic-1.JPG` | 1200×1500 | none | Figure striding along with a beer bottle for a head, froth spraying | **A** hero |
-| `graphics/graphic-2.JPG` | 1080×744 | none | Figure dancing under a disco ball, drink in hand | **A** announcements aside · **B** about · **C** about |
-| `graphics/graphic-3.JPG` | 1150×1668 | none | Pair of legs disappearing into a foaming stein | **A** event-detail ornament |
-| `graphics/graphic-4.JPG` | 1080×744 | none | Hand holding a gold pint inside a circular roundel | **A** mailing list · **B** hero badge · **C** mailing card |
+| `graphics/graphic-1.JPG` | 1200×1500 | none | Figure striding along with a beer bottle for a head, froth spraying | **A**, **B1**, **B2** hero |
+| `graphics/graphic-2.JPG` | 1080×744 | none | Figure dancing under a disco ball, drink in hand | **A** aside · **B**/**B1**/**B2**/**B3** about · **C** about |
+| `graphics/graphic-3.JPG` | 1150×1668 | none | Pair of legs disappearing into a foaming stein | Event-detail ornament in **A**, **B1**, **B2**, **B3** |
+| `graphics/graphic-4.JPG` | 1080×744 | none | Hand holding a gold pint inside a circular roundel | **A**/**B1**/**B3** mailing · **B** hero badge · **C** mailing card |
 
 ### Sampled palette
 
 | Role | Hex | Where it came from |
 |---|---|---|
-| Paper cream | `#F9F1DE` | Modal background of graphics 1 and 2 (3 and 4 are within 2 points) |
 | Ink | `#000000` | Line work across all four |
 | Beer amber | `#F0BC2E` | Most saturated cluster in `graphic-4`'s pint |
 
-**The most important finding.** All four illustrations are JPEGs with no
-transparency, on a flat cream ground. Setting the page background to that exact
-cream makes the artwork read as drawn directly onto the page instead of pasted
-into a box. Direction A is built on this; B and C use the same trick wherever an
-illustration sits on cream. The CSS also applies `mix-blend-mode: multiply` so
-JPEG edge banding cannot show a faint rectangle.
+### Background colours — colour-picked per file
+
+The four illustrations do **not** share one cream. Each background was sampled
+from the web-ready JPEG that actually ships: the modal colour of a ring around
+the outer 3% of the image, which is always background and never line work. Every
+border is uniform to within 3/255, so these are exact.
+
+| Web-ready file | Background | Also used as |
+|---|---|---|
+| `illus-bottle-walk.jpg` | `#F9F1DE` | Hero band ground in A, B1, B2 |
+| `illus-disco.jpg` | `#F9F1DE` | About section ground in B1, B2; plate in B3 |
+| `illus-stein-dive.jpg` | `#F7F0E0` | Event-page ornament ground |
+| `illus-pint-roundel.jpg` | `#F8EFDE` | Mailing CTA badge ground |
+
+These live in **`src/config/artwork.ts`** as the single source of truth, next to
+each file's path, alt text and dimensions. The rule is recorded there: any
+section showing an illustration must use that illustration's own `paper` value.
+
+Re-sample after re-encoding any file:
+
+```bash
+python3 -c "from PIL import Image; from collections import Counter; \
+  im=Image.open('public/media/graphics/illus-disco.jpg').convert('RGB'); \
+  print(Counter(im.crop((0,0,im.width,8)).getdata()).most_common(1))"
+```
+
+### Why this matters, and one trap
+
+All four illustrations are JPEGs with **no transparency**, on a flat ground.
+Matching the section background to the file's own colour is the only way the
+artwork reads as drawn onto the page instead of pasted into a box.
+
+**Do not reach for `mix-blend-mode: multiply` to hide the edge.** It was tried
+and it backfires: multiplying the artwork's cream against an identical page cream
+produces `#F3E4C1` — about 29/255 darker per channel — which is exactly the
+visible rectangle the technique is meant to remove. The matched ground is the fix;
+no blend mode is needed.
 
 If the artwork is ever redrawn, **PNGs with real transparency would be better** —
-they would free the designs from the cream ground.
+they would free the designs from any fixed ground, which matters most in B3,
+where illustrations sit against near-black.
 
 ---
 
@@ -51,10 +82,10 @@ and the rest are held back.
 
 | File | Pixels | Subject | Used in |
 |---|---|---|---|
-| `photos/IMG_4013.HEIC` | 4032×3024 | Beer-hall interior, crowd between long tables | **A** photo band · **B** hero |
-| `photos/IMG_4231.JPG` | 1560×1170 | Three people in traditional dress outside a beer hall | **B** event card |
-| `photos/IMG_2919.JPG` | 1170×1560 | Outdoors at dusk, festoon lights, festival tents | **B** featured event |
-| `photos/IMG_3478.JPG` | 1170×1560 | Person holding up a bottled beer indoors | **B** event card |
+| `photos/IMG_4013.HEIC` | 4032×3024 | Beer-hall interior, crowd between long tables | **A** photo band · **B**/**B3** hero |
+| `photos/IMG_4231.JPG` | 1560×1170 | Three people in traditional dress outside a beer hall | **B**/**B1**/**B2**/**B3** event card |
+| `photos/IMG_2919.JPG` | 1170×1560 | Outdoors at dusk, festoon lights, festival tents | **B**/**B1**/**B2**/**B3** featured event |
+| `photos/IMG_3478.JPG` | 1170×1560 | Person holding up a bottled beer indoors | **B**/**B1**/**B2**/**B3** event card |
 
 ### Held back, with reasons
 

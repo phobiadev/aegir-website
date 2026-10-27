@@ -13,49 +13,88 @@ const sample = featuredEventSlug;
 
 const directions = [
   {
-    key: 'a',
-    name: 'Ink & Paper',
+    key: 'b', name: 'Pint Club', family: 'The B family', lead: true,
+    strap: 'Warm poster-style, photo-forward',
+    ground: '#17150f',
+    swatches: ['#17150f', '#f0bc2e', '#f9f1de'],
+    type: 'Archivo condensed, all-caps display',
+    navModel: 'Sticky top bar; full-screen overlay menu on mobile',
+    eventModel: 'Featured card plus a grid, amber date chips',
+    assets: 'Photographs carry the hero and every card; pint roundel as a badge',
+    pitch:
+      'The original. Alternating ink and cream sections with amber as the active colour, and real photographs doing the persuading.',
+    strengths: ['Most immediately appealing to new students', 'Events look like things you book', 'Scales as more photos arrive'],
+    tradeoffs: ['Depends on a steady supply of good photographs', 'Least formal of the family'],
+  },
+  {
+    key: 'b1', name: 'Daylight', family: 'The B family',
+    strap: 'B lifted onto paper',
+    ground: '#f9f1de',
+    swatches: ['#f9f1de', '#f0bc2e', '#17150f'],
+    type: 'Archivo normal-width, mixed case, very bold',
+    navModel: 'Sticky bar on cream; overlay menu on mobile',
+    eventModel: 'Ticket rows — perforated date stub, thumbnail, status',
+    assets: 'Bottle-walk illustration in the hero; disco in About; roundel on the dark CTA',
+    pitch:
+      'Everything B does, on paper instead of ink. Mixed-case bold rather than condensed caps, and the illustrations can sit anywhere because no dark slab fights them.',
+    strengths: ['Lightest and friendliest of the family', 'Illustrations and photos coexist comfortably', 'Reads well in daylight on a phone'],
+    tradeoffs: ['Less dramatic than B — quieter first impression', 'Amber has to work harder without ink behind it'],
+  },
+  {
+    key: 'b2', name: 'Broadsheet Club', family: 'The B family', hybrid: true,
+    strap: 'The A × B hybrid',
+    ground: '#f9f1de',
+    swatches: ['#f9f1de', '#14120e', '#f0bc2e'],
+    type: 'Fraunces display serif (from A) + Archivo labels',
+    navModel: "A's centred masthead, made sticky, with B's amber CTA and mobile overlay",
+    eventModel: "B's photo-led featured event above A's ruled ledger",
+    assets: 'Bottle-walk bleeds off the opener; disco anchors About; stein on the event page',
+    pitch:
+      "A's editorial masthead, serif and ruled lists carrying B's amber, photo-led featured event and working mobile menu. The most credible of the family without losing the warmth.",
+    strengths: ['Keeps the elements of A you liked', 'Serif gives it authority the others lack', 'Featured-plus-ledger suits an uneven termcard'],
+    tradeoffs: ['Two typefaces to maintain', 'Tall masthead costs vertical space on mobile'],
+  },
+  {
+    key: 'b3', name: 'Late', family: 'The B family',
+    strap: 'B pushed as far as it goes',
+    ground: '#0f0e0a',
+    swatches: ['#0f0e0a', '#f0bc2e', '#f6efdd'],
+    type: 'Archivo ultra-condensed, poster scale',
+    navModel: 'Sticky dark bar, amber wordmark; numbered overlay menu',
+    eventModel: 'Numbered poster rows — 01, 02 — with large photography',
+    assets: 'Illustrations sit in paper-coloured plates that punch out of the dark',
+    pitch:
+      'The loudest option. Near-black throughout, amber doing all the signalling, headlines at poster scale. The illustrations become bright plates against the dark.',
+    strengths: ['Most striking and memorable', 'Photographs look their best against the dark', 'Strong on a phone at night'],
+    tradeoffs: ['Heaviest and least institutional', 'Unforgiving of weak photography', 'A lot of dark for a long reading page'],
+  },
+  {
+    key: 'a', name: 'Ink & Paper', family: 'Earlier directions',
     strap: 'Illustration-led editorial broadsheet',
     ground: '#f9f1de',
-    swatches: ['#f9f1de', '#14120e', '#c98a12'],
+    swatches: ['#f9f1de', '#14120e', '#866918'],
     type: 'Fraunces (display serif) + Archivo (labels)',
     navModel: 'Centred masthead, nav beneath the rule',
     eventModel: 'Dated ledger — stacked day/month, ruled rows',
     assets: 'Three illustrations used large; one photograph as a full-width band',
     pitch:
-      'The page background is set to the exact cream the illustrations were drawn on, so the ink artwork sits on the page with no visible edge. Reads as a printed society paper.',
-    strengths: ['Strongest use of the supplied artwork', 'Distinctive and hard to mistake for a template', 'Dense events list scans quickly'],
-    tradeoffs: ['Leans hardest on illustration, so it dates with the artwork', 'Least photographic — no sense of the real crowd'],
+      'Kept for reference. The page background is the exact cream the illustrations were drawn on, so the artwork sits on the page with no visible edge.',
+    strengths: ['Strongest use of the supplied artwork', 'Distinctive and hard to mistake for a template'],
+    tradeoffs: ['Least photographic — no sense of the real crowd', 'B2 now carries most of what this did well'],
   },
   {
-    key: 'b',
-    name: 'Pint Club',
-    strap: 'Warm poster-style, photo-forward',
-    ground: '#17150f',
-    swatches: ['#17150f', '#f0bc2e', '#f9f1de'],
-    type: 'Archivo Variable, condensed all-caps display',
-    navModel: 'Sticky top bar; full-screen overlay menu on mobile',
-    eventModel: 'Featured card plus a grid, amber date chips',
-    assets: 'Photographs carry the hero and every card; the pint roundel as a badge',
-    pitch:
-      'The loudest and most social of the three. Alternating ink and cream sections with amber as the active colour, and real photographs doing the persuading.',
-    strengths: ['Most immediately appealing to new students', 'Events look like things you book, not things you read about', 'Scales well as more photos arrive'],
-    tradeoffs: ['Depends on a steady supply of good photographs', 'Least formal — may undersell the society to colleges or sponsors'],
-  },
-  {
-    key: 'c',
-    name: 'Common Room',
+    key: 'c', name: 'Common Room', family: 'Earlier directions',
     strap: 'Quiet, structured, institutional',
     ground: '#fcfbf8',
-    swatches: ['#fcfbf8', '#1d1b16', '#8a6a1a'],
+    swatches: ['#fcfbf8', '#1d1b16', '#856717'],
     type: 'Source Serif 4 (text) + Archivo (labels)',
     navModel: 'Persistent left sidebar; collapses to a top bar on mobile',
     eventModel: 'Termcard table — date, event, venue, guests, status',
     assets: 'Illustrations small and sparing as section marks; no photography',
     pitch:
-      'The most credible to an outside reader. A real termcard table rather than a list of cards, and enough restraint that the society looks organised rather than loud.',
-    strengths: ['Most information per screen', 'Ages best and survives a weak photo term', 'Sidebar scales as pages are added'],
-    tradeoffs: ['Quietest — least likely to stop a scroll', 'Uses the least of the supplied artwork'],
+      'Kept for reference only. The termcard table is the one idea here worth salvaging if a future page needs to list a lot of events densely.',
+    strengths: ['Most information per screen', 'Termcard table is genuinely useful'],
+    tradeoffs: ['Ruled out in review', 'Uses the least of the supplied artwork'],
   },
 ];
 ---
@@ -71,11 +110,12 @@ const directions = [
     <header class="rv-head">
       <div class="rv-shell">
         <p class="rv-kicker">Aegir &middot; Stage 1 &middot; Design exploration</p>
-        <h1>Three directions to choose between</h1>
+        <h1>The B family, plus the originals</h1>
         <p class="rv-lede">
-          Each option below is a working prototype, not a mockup. All three use
-          exactly the same sample content and draw on the same pool of supplied
-          assets, so the only thing that differs is the design.
+          B was the pick, so there are now three more built on it — B1, B2 and
+          B3 — spanning lighter, more editorial and much darker. B2 is the
+          A&nbsp;×&nbsp;B hybrid. Every option is a working prototype using
+          identical sample content, so the only thing that differs is design.
         </p>
         <p class="rv-note">
           <strong>Everything is placeholder content.</strong> Event names, dates,
@@ -88,11 +128,21 @@ const directions = [
     </header>
 
     <main class="rv-shell">
-      <section class="rv-cards">
-        {directions.map((d) => (
+      {['The B family', 'Earlier directions'].map((fam) => (
+        <section class="rv-group">
+          <h2 class="rv-group__head">
+            {fam}
+            {fam === 'The B family'
+              ? <span class="rv-group__note">Built on B. Start here.</span>
+              : <span class="rv-group__note">Kept for reference.</span>}
+          </h2>
+          <div class="rv-cards">
+        {directions.filter((d) => d.family === fam).map((d) => (
           <article class="rv-card">
             <div class="rv-card__top" style={`background:${d.ground}`}>
-              <span class="rv-card__letter" style={`color:${d.key === 'b' ? '#f0bc2e' : '#14120e'}`}>{d.key.toUpperCase()}</span>
+              <span class="rv-card__letter" style={`color:${['b', 'b3'].includes(d.key) ? '#f0bc2e' : '#14120e'}`}>{d.key.toUpperCase()}</span>
+              {'lead' in d && <span class="rv-tagbox">Your pick</span>}
+              {'hybrid' in d && <span class="rv-tagbox">A × B</span>}
               <div class="rv-card__swatches">
                 {d.swatches.map((s) => <span style={`background:${s}`} title={s}></span>)}
               </div>
@@ -127,15 +177,17 @@ const directions = [
             </div>
           </article>
         ))}
-      </section>
+          </div>
+        </section>
+      ))}
 
       <section class="rv-section">
         <h2 class="rv-h2">How to compare them fairly</h2>
         <ol class="rv-steps">
-          <li>Open all three homepages in separate tabs and switch between them at full width.</li>
-          <li>Narrow the window to roughly 390px, or open them on a phone, and look at the events section in each. The three handle a small screen very differently.</li>
-          <li>Open the same event page in each direction — all three show <em>{sample.replace(/-/g, ' ')}</em> — and compare how the practical details are presented.</li>
-          <li>Use the pill at the bottom of any prototype to jump straight between A, B and C.</li>
+          <li>Open B, B1, B2 and B3 in four tabs and switch between them at full width. They share a family resemblance, so the differences show up fastest side by side.</li>
+          <li>Narrow to roughly 390px, or open them on a phone. The four present events very differently once space is tight — cards, ticket rows, featured-plus-ledger, and numbered poster rows.</li>
+          <li>Open the same event page in each — all of them show <em>{sample.replace(/-/g, ' ')}</em> — and compare how the practical details are laid out.</li>
+          <li>Use the pill at the bottom of any prototype to jump straight between directions.</li>
         </ol>
       </section>
 
@@ -145,10 +197,11 @@ const directions = [
           <div>
             <p class="rv-status__head rv-status__head--yes">Working in all three</p>
             <ul>
-              <li>Every navigation link, including the mobile menu in B and the collapsing sidebar in C</li>
-              <li>All four event pages per direction, reachable from the homepage</li>
+              <li>Every navigation link, including the mobile overlay menus in B, B1, B2 and B3</li>
+              <li>All four event pages in every direction, reachable from the homepage</li>
               <li>Breadcrumbs, in-page anchors and the prototype switcher</li>
               <li>Responsive layout from roughly 320px upwards</li>
+              <li>Illustration grounds painted with each file&rsquo;s own sampled background colour</li>
             </ul>
           </div>
           <div>
@@ -157,7 +210,7 @@ const directions = [
               <li><strong>Mailing-list signup</strong> — the society's real URL has not been supplied, so every signup button is inert</li>
               <li><strong>Booking and calendar export</strong> — out of scope at this stage</li>
               <li><strong>Past-events archive, contact page, Instagram link</strong> — not built</li>
-              <li><strong>Logo</strong> — not yet supplied, so all three show a typographic &ldquo;{site.name}&rdquo;</li>
+              <li><strong>Logo</strong> — not yet supplied, so every direction shows a typographic &ldquo;{site.name}&rdquo;</li>
             </ul>
           </div>
         </div>
@@ -166,7 +219,7 @@ const directions = [
       <section class="rv-section">
         <h2 class="rv-h2">Shared sample content</h2>
         <p class="rv-body">
-          All three directions import the same content module, so no option gets
+          Every direction imports the same content module, so no option gets
           flattering copy the others do not. It contains {events.length} example
           events, three announcements and six committee roles.
         </p>
@@ -211,7 +264,7 @@ const directions = [
         font-family: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
         font-size: 16px;
       }
-      .review .rv-shell { width: min(100% - 2.5rem, 76rem); margin-inline: auto; }
+      .review .rv-shell { width: min(100% - 2.5rem, 84rem); margin-inline: auto; }
 
       .rv-head { border-bottom: 1px solid var(--line); padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(2rem, 4vw, 3rem); background: var(--panel); }
       .rv-kicker { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent); margin-bottom: 1rem; }
@@ -221,14 +274,19 @@ const directions = [
       .rv-note strong { color: var(--ink); }
       .rv-glyph { color: var(--accent); font-weight: 700; }
 
-      .rv-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; padding: clamp(2rem, 4vw, 3rem) 0; }
+      .rv-group { padding-top: clamp(1.75rem, 3.5vw, 2.5rem); }
+      .rv-group__head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem 0.9rem; font-size: 1rem; letter-spacing: -0.005em; padding-bottom: 0.6rem; border-bottom: 1px solid var(--line); }
+      .rv-group__note { font-size: 0.75rem; font-weight: 500; color: var(--muted); }
+      .rv-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.25rem; padding: 1.5rem 0 0; }
+      .rv-group + .rv-group .rv-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 42rem; }
+      .rv-tagbox { font-size: 0.5625rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; background: var(--ink); color: #fff; padding: 0.22rem 0.5rem; border-radius: 2px; }
       .rv-card { border: 1px solid var(--line); display: flex; flex-direction: column; background: #fff; }
-      .rv-card__top { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.35rem; border-bottom: 1px solid var(--line); }
-      .rv-card__letter { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+      .rv-card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; padding: 1rem 1.15rem; border-bottom: 1px solid var(--line); }
+      .rv-card__letter { font-size: 2rem; font-weight: 800; line-height: 1; }
       .rv-card__swatches { display: flex; gap: 0.3rem; }
       .rv-card__swatches span { width: 1.1rem; height: 1.1rem; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18); }
-      .rv-card__body { padding: 1.35rem; display: flex; flex-direction: column; flex: 1; }
-      .rv-card__body h2 { font-size: 1.375rem; letter-spacing: -0.01em; }
+      .rv-card__body { padding: 1.15rem; display: flex; flex-direction: column; flex: 1; }
+      .rv-card__body h2 { font-size: 1.1875rem; letter-spacing: -0.01em; }
       .rv-card__strap { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 0.3rem 0 0.9rem; font-weight: 600; }
       .rv-card__pitch { font-size: 0.9375rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.25rem; }
 
@@ -278,8 +336,12 @@ const directions = [
       .rv-foot { border-top: 1px solid var(--line); margin-top: 2rem; padding: 1.5rem 0 3rem; }
       .rv-foot p { font-size: 0.8125rem; color: var(--muted); }
 
+      @media (max-width: 86rem) {
+        .rv-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
       @media (max-width: 64rem) {
-        .rv-cards { grid-template-columns: 1fr; }
+        .rv-cards,
+        .rv-group + .rv-group .rv-cards { grid-template-columns: 1fr; max-width: none; }
         .rv-pros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       }
       @media (max-width: 44rem) {

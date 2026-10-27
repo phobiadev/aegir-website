@@ -1,0 +1,139 @@
+---
+import DirectionB3 from '../../../../layouts/DirectionB3.astro';
+import { events, formatDate, dayNumber, monthShort, weekdayShort } from '../../../../data/sample-content';
+import { site } from '../../../../config/site';
+import { artwork } from '../../../../config/artwork';
+
+export function getStaticPaths() {
+  return events.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+const { event } = Astro.props;
+const others = events.filter((e) => e.slug !== event.slug).slice(0, 3);
+---
+
+<DirectionB3 title={event.title} section="events">
+  <section class="poster">
+    <img class="poster__photo" src={event.image!} alt={event.imageAlt!} width="1050" height="1400" fetchpriority="high" decoding="async" />
+    <div class="poster__scrim"></div>
+    <div class="shell poster__content">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/design-review/b3/">Home</a>
+        <span aria-hidden="true">&rsaquo;</span>
+        <a href="/design-review/b3/#events">Events</a>
+      </nav>
+      <p class="poster__chips">
+        <span class="chip chip--open">{dayNumber(event.date)} {monthShort(event.date)}</span>
+        <span class={`chip chip--${event.status.toLowerCase().replace(/\s+/g, '-')}`}>{event.status}</span>
+        {event.example && <span class="example-flag">Example event</span>}
+      </p>
+      <h1 class="display poster__title">{event.title}</h1>
+      <p class="poster__summary">{event.summary}</p>
+      <p class="poster__when">{weekdayShort(event.date)} {formatDate(event.date)} &middot; {event.startTime}{event.endTime ? `–${event.endTime}` : ''} &middot; {event.venue}</p>
+    </div>
+    <div class="hero__rule"></div>
+  </section>
+
+  <section class="section detail">
+    <div class="shell detail__grid">
+      <div class="detail__body">
+        {event.body.map((para) => <p>{para}</p>)}
+        <h2 class="display detail__sub">Getting there</h2>
+        <p>
+          The venue is{' '}
+          <a href="#" data-placeholder title="A map link is not wired up in this prototype">on the society map</a>.
+          If you need step-free access or have any other requirement, tell the
+          Secretary when you book and it will be arranged.
+        </p>
+      </div>
+
+      <aside class="detail__side">
+        <div class="bookbox">
+          <p class="bookbox__head">Book this event</p>
+          <dl class="bookbox__facts">
+            <div><dt>Date</dt><dd>{formatDate(event.date)}</dd></div>
+            <div><dt>Time</dt><dd>{event.startTime}{event.endTime ? `–${event.endTime}` : ''}</dd></div>
+            <div><dt>Venue</dt><dd>{event.venue}</dd></div>
+            <div><dt>Price</dt><dd>{event.price}</dd></div>
+            <div><dt>Guests</dt><dd>{event.guests}</dd></div>
+            {event.dress && <div><dt>Dress</dt><dd>{event.dress}</dd></div>}
+          </dl>
+          <a
+            class="btn btn--amber bookbox__btn"
+            href={site.mailingListUrl ?? '#'}
+            data-placeholder={site.mailingListUrl ? undefined : true}
+            title={site.mailingListUrl ? undefined : 'Booking is not wired up in this prototype'}
+          >Book a place</a>
+          <a class="bookbox__alt" href="#" data-placeholder title="Calendar export is not part of this prototype">Add to calendar</a>
+        </div>
+        <div class="plate plate--stein detail__plate">
+          <img src={artwork.steinDive.src} alt={artwork.steinDive.alt}
+               width={artwork.steinDive.width} height={artwork.steinDive.height} loading="lazy" decoding="async" />
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section section--raised">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">Keep going</p>
+        <h2 class="display">More this term</h2>
+      </div>
+      <ol class="bills">
+        {others.map((e, i) => (
+          <li class="bill">
+            <span class="bill__n">{String(i + 1).padStart(2, '0')}</span>
+            <a class="bill__media" href={`/design-review/b3/events/${e.slug}/`}>
+              <img src={e.image!} alt={e.imageAlt!} width="1050" height="1400" loading="lazy" decoding="async" />
+            </a>
+            <div class="bill__body">
+              <p class="bill__when">
+                <span class="bill__date">{weekdayShort(e.date)} {dayNumber(e.date)} {monthShort(e.date)}</span>
+                <span class={`chip chip--${e.status.toLowerCase().replace(/\s+/g, '-')}`}>{e.status}</span>
+              </p>
+              <h3 class="display bill__title"><a href={`/design-review/b3/events/${e.slug}/`}>{e.title}</a></h3>
+              <p class="bill__summary">{e.summary}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+</DirectionB3>
+
+<style is:global>
+  .dir-b3 .poster { position: relative; isolation: isolate; display: flex; align-items: flex-end; min-height: min(72vh, 40rem); }
+  .dir-b3 .poster__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 28%; z-index: -2; filter: saturate(0.85) contrast(1.05); }
+  .dir-b3 .poster__scrim { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(15,14,10,0.55) 0%, rgba(15,14,10,0.82) 55%, rgba(15,14,10,0.97) 100%); }
+  .dir-b3 .poster__content { padding: clamp(2.5rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3rem); }
+  .dir-b3 .crumb { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--on-ink-soft); }
+  .dir-b3 .crumb a { text-decoration: none; }
+  .dir-b3 .crumb a:hover { color: var(--amber); }
+  .dir-b3 .poster__chips { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1.25rem; }
+  .dir-b3 .poster__title { font-size: clamp(2.25rem, 1rem + 6vw, 5.5rem); max-width: 16ch; margin-bottom: 1.1rem; }
+  .dir-b3 .poster__summary { font-size: clamp(1.0625rem, 1rem + 0.45vw, 1.25rem); max-width: 52ch; color: #ddd4bd; line-height: 1.55; margin-bottom: 0.9rem; }
+  .dir-b3 .poster__when { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--amber); }
+
+  .dir-b3 .detail__grid { display: grid; grid-template-columns: minmax(0, 1fr) 20rem; gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+  .dir-b3 .detail__body { max-width: 60ch; font-size: 1.0625rem; line-height: 1.75; color: #e2dac6; }
+  .dir-b3 .detail__body > p { margin-bottom: 1.25rem; }
+  .dir-b3 .detail__body > p:first-of-type { font-size: 1.25rem; color: var(--on-ink); }
+  .dir-b3 .detail__sub { font-size: 1.625rem; margin: 2.5rem 0 0.9rem; }
+  .dir-b3 .detail__body a { color: var(--amber); text-underline-offset: 3px; }
+
+  .dir-b3 .detail__side { position: sticky; top: 5.5rem; }
+  .dir-b3 .bookbox { background: var(--ink-2); border-top: 6px solid var(--amber); padding: 1.6rem; }
+  .dir-b3 .bookbox__head { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.16em; color: var(--amber); margin-bottom: 1.1rem; }
+  .dir-b3 .bookbox__facts > div { padding: 0.6rem 0; border-bottom: 1px solid var(--ink-3); }
+  .dir-b3 .bookbox__facts dt { font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.16em; color: var(--on-ink-soft); margin-bottom: 0.2rem; }
+  .dir-b3 .bookbox__facts dd { font-size: 0.9375rem; font-weight: 600; }
+  .dir-b3 .bookbox__btn { display: block; text-align: center; margin-top: 1.4rem; }
+  .dir-b3 .bookbox__alt { display: block; text-align: center; margin-top: 0.85rem; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--on-ink-soft); }
+  .dir-b3 .detail__plate { margin-top: 1.75rem; max-width: 12rem; margin-inline: auto; }
+
+  @media (max-width: 62rem) {
+    .dir-b3 .detail__grid { grid-template-columns: 1fr; }
+    .dir-b3 .detail__side { position: static; }
+    .dir-b3 .detail__plate { margin-inline: 0; max-width: 9rem; }
+  }
+</style>

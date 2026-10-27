@@ -1,0 +1,241 @@
+---
+/**
+ * B3 — "Late". B pushed as far as it goes: ink-dominant throughout, amber
+ * doing the heavy lifting, ultra-condensed display type at poster scale.
+ *
+ * Because the ground is dark, the supplied illustrations are placed in their
+ * own paper-coloured blocks that punch out of the dark. Matching each block to
+ * its artwork's sampled colour matters more here than anywhere else — against
+ * ink, any mismatch is immediately visible.
+ */
+import '../styles/reset.css';
+import '@fontsource-variable/archivo/wdth.css';
+import { site, nav } from '../config/site';
+import { artwork } from '../config/artwork';
+import PrototypeBar from '../components/PrototypeBar.astro';
+
+interface Props { title: string; section?: string }
+const { title, section = 'home' } = Astro.props;
+
+/**
+ * Paper colours emitted once, from the sampled values in artwork.ts.
+ * (`define:vars` is deliberately avoided here: combined with `is:global` it
+ * stamps the custom properties onto every element in the page.)
+ */
+const paperVars = `.dir-b3 {
+  --paper-bottle: ${artwork.bottleWalk.paper};
+  --paper-disco: ${artwork.disco.paper};
+  --paper-roundel: ${artwork.pintRoundel.paper};
+  --paper-stein: ${artwork.steinDive.paper};
+}`;
+---
+
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {site.name} — Direction B3</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <style is:global set:html={paperVars}></style>
+  </head>
+  <body class="dir-b3">
+    <a href="#main" class="skip">Skip to content</a>
+
+    <header class="bar">
+      <div class="shell bar__inner">
+        <a href="/design-review/b3/" class="bar__brand">
+          {site.logo
+            ? <img src={site.logo.src} alt={site.logo.alt} width={site.logo.width} height={site.logo.height} />
+            : <span class="bar__wordmark">{site.name}</span>}
+        </a>
+        <nav class="bar__nav" aria-label="Primary">
+          <ul>
+            {nav.map((item) => (
+              <li>
+                {item.key === 'home'
+                  ? <a href="/design-review/b3/" aria-current={section === 'home' ? 'page' : undefined}>{item.label}</a>
+                  : <a href={`/design-review/b3/#${item.key}`} aria-current={section === item.key ? 'page' : undefined}>{item.label}</a>}
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <a
+          class="bar__cta"
+          href={site.mailingListUrl ?? '#'}
+          data-placeholder={site.mailingListUrl ? undefined : true}
+          title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+        >Join</a>
+        <button class="burger" type="button" aria-expanded="false" aria-controls="b3-menu" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="sheet" id="b3-menu" hidden>
+      <div class="sheet__inner">
+        <button class="sheet__close" type="button" aria-label="Close menu">&times;</button>
+        <nav aria-label="Mobile">
+          <ul class="sheet__list">
+            {nav.map((item, i) => (
+              <li>
+                <span class="sheet__n">{String(i + 1).padStart(2, '0')}</span>
+                {item.key === 'home'
+                  ? <a href="/design-review/b3/">{item.label}</a>
+                  : <a href={`/design-review/b3/#${item.key}`}>{item.label}</a>}
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <a
+          class="sheet__cta"
+          href={site.mailingListUrl ?? '#'}
+          data-placeholder={site.mailingListUrl ? undefined : true}
+          title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+        >Join the mailing list</a>
+      </div>
+    </div>
+
+    <main id="main"><slot /></main>
+
+    <footer class="foot">
+      <div class="shell">
+        <p class="foot__mark">{site.name}</p>
+        <div class="foot__grid">
+          <p class="foot__tag">{site.tagline}</p>
+          <div class="foot__links">
+            <a href="#" data-placeholder title="Instagram link is not wired up in this prototype">Instagram</a>
+            <a href="#" data-placeholder title="A contact page is not part of this prototype">Contact</a>
+          </div>
+        </div>
+        <div class="foot__legal">
+          <p>
+            Design prototype — Direction B3. All events, dates and copy shown are
+            invented examples. Links marked{' '}
+            <span class="foot__glyph">&#8257;</span>{' '}
+            have no destination in this prototype.
+          </p>
+          <p>Illustrations by {site.instagram}</p>
+        </div>
+      </div>
+    </footer>
+
+    <PrototypeBar current="b3" />
+
+    <script>
+      const burger = document.querySelector<HTMLButtonElement>('.burger');
+      const sheet = document.querySelector<HTMLElement>('.sheet');
+      const close = document.querySelector<HTMLButtonElement>('.sheet__close');
+      function setOpen(open: boolean) {
+        if (!sheet || !burger) return;
+        sheet.hidden = !open;
+        burger.setAttribute('aria-expanded', String(open));
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) close?.focus(); else burger.focus();
+      }
+      burger?.addEventListener('click', () => setOpen(sheet?.hidden ?? true));
+      close?.addEventListener('click', () => setOpen(false));
+      sheet?.addEventListener('click', (e) => { if (e.target === sheet) setOpen(false); });
+      sheet?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sheet && !sheet.hidden) setOpen(false);
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .dir-b3 {
+    --ink: #0f0e0a;
+    --ink-2: #1a1812;
+    --ink-3: #262219;
+    --amber: #f0bc2e;
+    --amber-deep: #c2900f;
+    --on-ink: #f6efdd;
+    --on-ink-soft: #a89e86;
+    /* Sampled paper colours — used wherever artwork sits on the dark ground. */
+    --sans: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+
+    background: var(--ink);
+    color: var(--on-ink);
+    font-family: var(--sans);
+    font-stretch: 100%;
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  }
+
+  .dir-b3 .shell { width: min(100% - 2.5rem, 80rem); margin-inline: auto; }
+  .dir-b3 .skip { position: absolute; left: -9999px; background: var(--amber); color: var(--ink); padding: 0.75rem 1.25rem; z-index: 10000; font-weight: 700; }
+  .dir-b3 .skip:focus { left: 1rem; top: 1rem; }
+
+  /* Ultra-condensed poster display — the loudest of the B family. */
+  .dir-b3 .display { font-stretch: 64%; font-weight: 900; text-transform: uppercase; line-height: 0.88; letter-spacing: 0.002em; }
+  .dir-b3 h2.display { font-size: clamp(2.25rem, 1.3rem + 4vw, 4.5rem); }
+  .dir-b3 .eyebrow { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--amber); }
+
+  /* ---------- Bar ---------- */
+  .dir-b3 .bar { position: sticky; top: 0; z-index: 100; background: var(--ink); border-bottom: 1px solid var(--ink-3); }
+  .dir-b3 .bar__inner { display: flex; align-items: center; gap: 1.5rem; min-height: 4rem; }
+  .dir-b3 .bar__brand { text-decoration: none; margin-inline-end: auto; }
+  .dir-b3 .bar__wordmark { font-stretch: 64%; font-weight: 900; text-transform: uppercase; font-size: 1.75rem; color: var(--amber); }
+  .dir-b3 .bar__nav ul { display: flex; gap: 1.75rem; }
+  .dir-b3 .bar__nav a { text-decoration: none; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--on-ink-soft); padding: 0.4rem 0; }
+  .dir-b3 .bar__nav a:hover, .dir-b3 .bar__nav a[aria-current='page'] { color: var(--amber); }
+  .dir-b3 .bar__cta { background: var(--amber); color: var(--ink); padding: 0.55rem 1.2rem; text-decoration: none; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; }
+  .dir-b3 .bar__cta:hover { background: var(--on-ink); }
+  .dir-b3 .burger { display: none; background: none; border: 0; cursor: pointer; padding: 0.5rem; flex-direction: column; gap: 4px; }
+  .dir-b3 .burger span { display: block; width: 22px; height: 2px; background: var(--amber); }
+
+  .dir-b3 .sheet { position: fixed; inset: 0; z-index: 200; background: var(--ink); }
+  .dir-b3 .sheet[hidden] { display: none; }
+  .dir-b3 .sheet__inner { display: flex; flex-direction: column; gap: 2rem; padding: 5rem 2rem 2rem; height: 100%; }
+  .dir-b3 .sheet__close { position: absolute; top: 1rem; right: 1.4rem; background: none; border: 0; font-size: 2.5rem; line-height: 1; cursor: pointer; color: var(--amber); }
+  .dir-b3 .sheet__list { display: grid; gap: 0.1rem; }
+  .dir-b3 .sheet__list li { display: flex; align-items: baseline; gap: 0.9rem; border-bottom: 1px solid var(--ink-3); }
+  .dir-b3 .sheet__n { font-size: 0.6875rem; font-weight: 700; color: var(--amber); letter-spacing: 0.1em; }
+  .dir-b3 .sheet__list a { display: block; flex: 1; text-decoration: none; padding: 0.55rem 0; font-stretch: 64%; font-weight: 900; text-transform: uppercase; font-size: 2.25rem; line-height: 1.05; }
+  .dir-b3 .sheet__list a:hover { color: var(--amber); }
+  .dir-b3 .sheet__cta { margin-top: auto; background: var(--amber); color: var(--ink); text-align: center; padding: 1.1rem; text-decoration: none; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; }
+
+  /* ---------- Sections ---------- */
+  .dir-b3 .section { padding: clamp(3.5rem, 7vw, 6rem) 0; }
+  .dir-b3 .section--raised { background: var(--ink-2); }
+  .dir-b3 .sechead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 1rem; margin-bottom: 2.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--ink-3); }
+  .dir-b3 .sechead .eyebrow { flex-basis: 100%; margin-bottom: 0.4rem; }
+
+  .dir-b3 .btn { display: inline-block; text-decoration: none; font-size: 0.8125rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; padding: 1rem 1.75rem; transition: background-color 0.15s ease, color 0.15s ease; }
+  .dir-b3 .btn--amber { background: var(--amber); color: var(--ink); }
+  .dir-b3 .btn--amber:hover { background: var(--on-ink); }
+  .dir-b3 .btn--ghost { border: 2px solid var(--on-ink-soft); color: var(--on-ink); }
+  .dir-b3 .btn--ghost:hover { background: var(--on-ink); color: var(--ink); border-color: var(--on-ink); }
+
+  .dir-b3 .chip { display: inline-block; font-size: 0.625rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; padding: 0.32rem 0.7rem; white-space: nowrap; border: 1px solid var(--amber); color: var(--amber); }
+  .dir-b3 .chip--open { background: var(--amber); color: var(--ink); }
+  .dir-b3 .chip--waitlist { background: transparent; }
+  .dir-b3 .chip--members-only { border-color: var(--on-ink-soft); color: var(--on-ink-soft); }
+
+  .dir-b3 .example-flag { display: inline-block; font-size: 0.625rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; background: var(--amber); color: var(--ink); padding: 0.2rem 0.5rem; vertical-align: middle; }
+
+  /* Artwork blocks punch out of the dark in their own sampled paper colour. */
+  .dir-b3 .plate { display: grid; place-items: center; padding: 1.5rem; }
+  .dir-b3 .plate img { width: 100%; height: auto; }
+  .dir-b3 .plate--disco { background: var(--paper-disco); }
+  .dir-b3 .plate--bottle { background: var(--paper-bottle); }
+  .dir-b3 .plate--roundel { background: var(--paper-roundel); }
+  .dir-b3 .plate--stein { background: var(--paper-stein); }
+
+  /* ---------- Footer ---------- */
+  .dir-b3 .foot { border-top: 1px solid var(--ink-3); padding: clamp(2.5rem, 5vw, 4rem) 0 6rem; }
+  .dir-b3 .foot__mark { font-stretch: 64%; font-weight: 900; text-transform: uppercase; font-size: clamp(4rem, 2rem + 11vw, 11rem); line-height: 0.84; color: var(--amber); margin-bottom: 1.5rem; }
+  .dir-b3 .foot__grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--ink-3); }
+  .dir-b3 .foot__tag { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--on-ink-soft); }
+  .dir-b3 .foot__links { display: flex; gap: 1.5rem; }
+  .dir-b3 .foot__links a { font-size: 0.8125rem; color: var(--on-ink-soft); text-decoration: none; }
+  .dir-b3 .foot__links a:hover { color: var(--amber); }
+  .dir-b3 .foot__legal { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-top: 1.25rem; font-size: 0.75rem; color: var(--on-ink-soft); }
+  .dir-b3 .foot__legal p { max-width: 58ch; line-height: 1.6; }
+  .dir-b3 .foot__glyph { color: var(--amber); font-weight: 700; }
+
+  @media (max-width: 54rem) {
+    .dir-b3 .bar__nav, .dir-b3 .bar__cta { display: none; }
+    .dir-b3 .burger { display: flex; }
+  }
+</style>

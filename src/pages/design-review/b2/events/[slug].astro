@@ -1,0 +1,147 @@
+---
+import DirectionB2 from '../../../../layouts/DirectionB2.astro';
+import { events, formatDate, weekdayShort, dayNumber, monthShort } from '../../../../data/sample-content';
+import { site } from '../../../../config/site';
+import { artwork } from '../../../../config/artwork';
+
+export function getStaticPaths() {
+  return events.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+const { event } = Astro.props;
+const others = events.filter((e) => e.slug !== event.slug).slice(0, 3);
+---
+
+<DirectionB2 title={event.title} section="events">
+  <article class="article">
+    <div class="shell">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/design-review/b2/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/design-review/b2/#events">Events</a>
+      </nav>
+
+      <header class="article__head">
+        <p class="article__chips">
+          <span class="chip chip--amber">{dayNumber(event.date)} {monthShort(event.date)}</span>
+          <span class={`chip chip--${event.status.toLowerCase().replace(/\s+/g, '-')}`}>{event.status}</span>
+          {event.example && <span class="example-flag">Example event</span>}
+        </p>
+        <h1 class="article__title">{event.title}</h1>
+        <p class="lede article__standfirst">{event.summary}</p>
+        <p class="meta">{weekdayShort(event.date)} {formatDate(event.date)} &middot; {event.startTime}{event.endTime ? `–${event.endTime}` : ''}</p>
+      </header>
+
+      <img class="article__photo" src={event.image!} alt={event.imageAlt!} width="1050" height="1400" fetchpriority="high" decoding="async" />
+
+      <!-- A's article column + B's sticky booking box. -->
+      <div class="article__grid">
+        <div class="article__body">
+          {event.body.map((para) => <p>{para}</p>)}
+          <h2 class="article__sub">Getting there</h2>
+          <p>
+            The venue is{' '}
+            <a href="#" data-placeholder title="A map link is not wired up in this prototype">on the society map</a>.
+            If you need step-free access or have any other requirement, tell the
+            Secretary when you book and it will be arranged.
+          </p>
+        </div>
+
+        <aside class="article__side">
+          <div class="bookbox">
+            <p class="bookbox__head">Book this event</p>
+            <dl class="bookbox__facts">
+              <div><dt>Date</dt><dd>{formatDate(event.date)}</dd></div>
+              <div><dt>Time</dt><dd>{event.startTime}{event.endTime ? `–${event.endTime}` : ''}</dd></div>
+              <div><dt>Venue</dt><dd>{event.venue}</dd></div>
+              <div><dt>Price</dt><dd>{event.price}</dd></div>
+              <div><dt>Guests</dt><dd>{event.guests}</dd></div>
+              {event.dress && <div><dt>Dress</dt><dd>{event.dress}</dd></div>}
+            </dl>
+            <a
+              class="btn btn--amber bookbox__btn"
+              href={site.mailingListUrl ?? '#'}
+              data-placeholder={site.mailingListUrl ? undefined : true}
+              title={site.mailingListUrl ? undefined : 'Booking is not wired up in this prototype'}
+            >Book a place</a>
+            <a class="bookbox__alt" href="#" data-placeholder title="Calendar export is not part of this prototype">Add to calendar</a>
+          </div>
+          <img
+            class="article__ornament"
+            src={artwork.steinDive.src} alt={artwork.steinDive.alt}
+            width={artwork.steinDive.width} height={artwork.steinDive.height}
+            loading="lazy" decoding="async"
+          />
+        </aside>
+      </div>
+
+      <section class="alsoon">
+        <p class="section-head"><span>Also this term</span></p>
+        <ul class="alsoon__list">
+          {others.map((e) => (
+            <li>
+              <p class="meta">{formatDate(e.date, { year: undefined })}</p>
+              <h3><a href={`/design-review/b2/events/${e.slug}/`}>{e.title}</a></h3>
+              <p class="alsoon__summary">{e.summary}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </article>
+</DirectionB2>
+
+<style is:global>
+  .dir-b2 .article { padding-top: clamp(1.75rem, 4vw, 3rem); }
+  .dir-b2 .crumb { display: flex; gap: 0.55rem; align-items: center; font-family: var(--sans); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-faint); margin-bottom: 1.5rem; }
+  .dir-b2 .crumb a { text-decoration: none; }
+  .dir-b2 .crumb a:hover { box-shadow: inset 0 -1px 0 currentColor; }
+
+  .dir-b2 .article__head { margin-bottom: 1.5rem; }
+  .dir-b2 .article__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+  .dir-b2 .article__title {
+    font-family: var(--serif); font-variation-settings: 'SOFT' 0, 'WONK' 1, 'opsz' 144;
+    font-weight: 600; font-size: clamp(2rem, 1.2rem + 3.4vw, 3.5rem);
+    line-height: 1.03; letter-spacing: -0.015em; margin-bottom: 0.9rem; max-width: 20ch;
+  }
+  .dir-b2 .article__standfirst { color: var(--ink-soft); max-width: 50ch; margin-bottom: 0.8rem; }
+  .dir-b2 .article__photo { width: 100%; height: clamp(13rem, 30vw, 22rem); object-fit: cover; border: 2px solid var(--ink); margin-bottom: 2.25rem; }
+
+  .dir-b2 .article__grid { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: clamp(2rem, 5vw, 3.5rem); align-items: start; }
+  .dir-b2 .article__body { max-width: 58ch; }
+  .dir-b2 .article__body > p { margin-bottom: 1.15rem; }
+  /* A's drop cap, kept. */
+  .dir-b2 .article__body > p:first-of-type::first-letter {
+    float: left; font-size: 3.5em; line-height: 0.78;
+    padding-right: 0.08em; margin-top: 0.06em;
+    font-variation-settings: 'SOFT' 0, 'WONK' 1, 'opsz' 144; font-weight: 600;
+  }
+  .dir-b2 .article__sub { font-size: 1.5rem; margin: 2rem 0 0.8rem; }
+
+  /* B's sticky booking box, re-skinned in A's palette. */
+  .dir-b2 .article__side { position: sticky; top: 11rem; }
+  .dir-b2 .bookbox { border: 2px solid var(--ink); border-top-width: 6px; border-top-color: var(--amber); padding: 1.35rem; background: var(--shade); }
+  .dir-b2 .bookbox__head { font-family: var(--sans); font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--amber-text); margin-bottom: 1rem; }
+  .dir-b2 .bookbox__facts > div { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: 0.6rem; padding: 0.55rem 0; border-bottom: 1px solid rgba(20,18,14,0.18); }
+  .dir-b2 .bookbox__facts dt { font-family: var(--sans); font-size: 0.5625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-faint); padding-top: 0.2rem; }
+  .dir-b2 .bookbox__facts dd { font-size: 0.9375rem; font-weight: 600; }
+  .dir-b2 .bookbox__btn { display: block; text-align: center; margin-top: 1.25rem; }
+  .dir-b2 .bookbox__alt { display: block; text-align: center; margin-top: 0.8rem; font-family: var(--sans); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-soft); }
+  /* stein-dive paper differs from the page cream, so it keeps its own. */
+  .dir-b2 .article__ornament { background: var(--paper-stein); width: 100%; height: auto; max-width: 10rem; margin: 1.75rem auto 0; }
+
+  .dir-b2 .alsoon { padding-top: clamp(2.75rem, 5.5vw, 4rem); }
+  .dir-b2 .alsoon__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.25rem, 3vw, 2.25rem); list-style: none; padding: 0; }
+  .dir-b2 .alsoon__list li { border-top: 1px solid rgba(20,18,14,0.22); padding-top: 0.85rem; }
+  .dir-b2 .alsoon__list .meta { margin-bottom: 0.45rem; }
+  .dir-b2 .alsoon__list h3 { font-size: 1.125rem; margin-bottom: 0.35rem; }
+  .dir-b2 .alsoon__list h3 a { text-decoration: none; }
+  .dir-b2 .alsoon__list h3 a:hover { box-shadow: inset 0 -2px 0 var(--amber); }
+  .dir-b2 .alsoon__summary { font-size: 0.875rem; color: var(--ink-soft); }
+
+  @media (max-width: 62rem) {
+    .dir-b2 .article__grid { grid-template-columns: 1fr; }
+    .dir-b2 .article__side { position: static; }
+    .dir-b2 .article__ornament { margin-inline: 0; max-width: 8rem; }
+    .dir-b2 .alsoon__list { grid-template-columns: 1fr; }
+  }
+</style>
