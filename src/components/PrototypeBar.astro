@@ -1,0 +1,96 @@
+---
+/**
+ * Prototype navigation chrome. Appears on all six design pages so a reviewer
+ * can jump between directions without going back to the comparison page.
+ *
+ * This is deliberately neutral, unbranded furniture — it is NOT part of any
+ * design direction and carries no comparison notes. All evaluation material
+ * lives on /design-review/, outside the society-facing designs.
+ */
+interface Props {
+  current: 'a' | 'b' | 'c';
+}
+const { current } = Astro.props;
+
+const directions = [
+  { key: 'a', name: 'Ink & Paper' },
+  { key: 'b', name: 'Pint Club' },
+  { key: 'c', name: 'Common Room' },
+] as const;
+---
+
+<div class="proto-bar" role="complementary" aria-label="Prototype controls">
+  <span class="proto-bar__label">Prototype</span>
+  <div class="proto-bar__links">
+    {directions.map((d) => (
+      <a
+        href={`/design-review/${d.key}/`}
+        class="proto-bar__link"
+        aria-current={d.key === current ? 'page' : undefined}
+        title={d.name}
+      >{d.key.toUpperCase()}</a>
+    ))}
+  </div>
+  <a href="/design-review/" class="proto-bar__back">Compare&nbsp;all</a>
+</div>
+
+<style>
+  .proto-bar {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(24, 24, 27, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.28);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: #fafafa;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .proto-bar__label {
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-size: 0.625rem;
+    font-weight: 600;
+    opacity: 0.62;
+    white-space: nowrap;
+  }
+
+  .proto-bar__links { display: flex; gap: 0.2rem; }
+
+  .proto-bar__link {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background-color 0.15s ease;
+  }
+  .proto-bar__link:hover { background: rgba(255, 255, 255, 0.16); }
+  .proto-bar__link[aria-current='page'] { background: #fafafa; color: #18181b; }
+
+  .proto-bar__back {
+    padding: 0.45rem 0.8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background-color 0.15s ease;
+  }
+  .proto-bar__back:hover { background: rgba(255, 255, 255, 0.24); }
+
+  @media print { .proto-bar { display: none; } }
+</style>

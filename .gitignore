@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.astro/
+
+# Supplied originals — retained locally, never committed
+reference-assets/
+
+# Local environment & secrets
+.env
+.env.*
+!.env.example
+
+# Temporary browser-test artifacts
+screenshots/
+test-results/
+playwright-report/
+.playwright/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+.idea/

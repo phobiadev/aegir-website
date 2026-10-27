@@ -1,0 +1,150 @@
+---
+import DirectionC from '../../../../layouts/DirectionC.astro';
+import { events, formatDate, weekdayShort } from '../../../../data/sample-content';
+import { site } from '../../../../config/site';
+
+export function getStaticPaths() {
+  return events.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+
+const { event } = Astro.props;
+const others = events.filter((e) => e.slug !== event.slug).slice(0, 3);
+---
+
+<DirectionC title={event.title} section="events">
+  <article class="brief">
+    <div class="pad">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/design-review/c/">Home</a>
+        <span aria-hidden="true">/</span>
+        <a href="/design-review/c/#events">Termcard</a>
+      </nav>
+
+      <header class="brief__head">
+        <p class="label brief__kicker">
+          {weekdayShort(event.date)} {formatDate(event.date)}
+          {event.example && <span class="example-flag">Example event</span>}
+        </p>
+        <h1 class="brief__title">{event.title}</h1>
+        <p class="brief__standfirst">{event.summary}</p>
+      </header>
+
+      <!-- Summary box first: the structured facts before any prose. -->
+      <div class="summary">
+        <dl class="summary__grid">
+          <div><dt>Date</dt><dd>{formatDate(event.date)}</dd></div>
+          <div><dt>Time</dt><dd>{event.startTime}{event.endTime ? `–${event.endTime}` : ''}</dd></div>
+          <div><dt>Venue</dt><dd>{event.venue}</dd></div>
+          <div><dt>Price</dt><dd>{event.price}</dd></div>
+          <div><dt>Guests</dt><dd>{event.guests}</dd></div>
+          {event.dress && <div><dt>Dress</dt><dd>{event.dress}</dd></div>}
+          <div><dt>Status</dt><dd><span class={`tag tag--${event.status.toLowerCase().replace(/\s+/g, '-')}`}>{event.status}</span></dd></div>
+        </dl>
+      </div>
+
+      <div class="brief__body">
+        {event.body.map((para) => <p>{para}</p>)}
+      </div>
+
+      <section class="attend">
+        <div class="rule-head"><h2>How to attend</h2></div>
+        <ol class="steps">
+          <li>
+            <span class="steps__n">1</span>
+            <p>
+              Make sure you are on{' '}
+              <a
+                href={site.mailingListUrl ?? '#'}
+                data-placeholder={site.mailingListUrl ? undefined : true}
+                title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+              >the mailing list</a>{' '}
+              — booking links go out there first.
+            </p>
+          </li>
+          <li>
+            <span class="steps__n">2</span>
+            <p>Book your place using the link below. Payment is taken at the point of booking.</p>
+          </li>
+          <li>
+            <span class="steps__n">3</span>
+            <p>Tell the Secretary about dietary requirements or access needs. Every event has a non-alcoholic option.</p>
+          </li>
+        </ol>
+        <div class="attend__actions">
+          <a
+            class="btn btn--solid"
+            href={site.mailingListUrl ?? '#'}
+            data-placeholder={site.mailingListUrl ? undefined : true}
+            title={site.mailingListUrl ? undefined : 'Booking is not wired up in this prototype'}
+          >Book a place</a>
+          <a class="btn btn--line" href="#" data-placeholder title="Calendar export is not part of this prototype">Add to calendar</a>
+        </div>
+      </section>
+
+      <section class="alsoon">
+        <div class="rule-head"><h2>Elsewhere on the termcard</h2></div>
+        <ul class="alsoon__list">
+          {others.map((e) => (
+            <li>
+              <p class="label">{formatDate(e.date, { year: undefined })}</p>
+              <h3><a href={`/design-review/c/events/${e.slug}/`}>{e.title}</a></h3>
+              <p class="alsoon__summary">{e.summary}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </article>
+</DirectionC>
+
+<style is:global>
+  .dir-c .brief { padding-top: clamp(2rem, 4vw, 3rem); }
+
+  .dir-c .crumb {
+    display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.75rem;
+    font-family: var(--sans); font-size: 0.6875rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
+  }
+
+  .dir-c .brief__kicker { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+  .dir-c .brief__title {
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 2.75rem);
+    line-height: 1.14; letter-spacing: -0.012em; max-width: 22ch; margin-bottom: 0.9rem;
+  }
+  .dir-c .brief__standfirst { font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.1875rem); color: var(--muted); max-width: 56ch; }
+
+  .dir-c .summary { background: var(--cream); border: 1px solid var(--cream-edge); padding: 1.5rem; margin: 2rem 0; }
+  .dir-c .summary__grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 1.25rem 2rem;
+  }
+  .dir-c .summary__grid dt {
+    font-family: var(--sans); font-size: 0.625rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted); margin-bottom: 0.3rem;
+  }
+  .dir-c .summary__grid dd { font-size: 0.9375rem; color: var(--ink); font-weight: 600; }
+
+  .dir-c .brief__body { max-width: 58ch; }
+  .dir-c .brief__body > p { margin-bottom: 1.15rem; }
+  .dir-c .brief__body > p:first-of-type { font-size: 1.125rem; }
+
+  .dir-c .attend { padding-top: clamp(2.5rem, 5vw, 3.5rem); }
+  .dir-c .steps { list-style: none; padding: 0; display: grid; gap: 1rem; max-width: 58ch; }
+  .dir-c .steps li { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: 0.9rem; align-items: start; }
+  .dir-c .steps__n {
+    display: grid; place-items: center; width: 1.75rem; height: 1.75rem;
+    border: 1px solid var(--line-strong); border-radius: 50%;
+    font-family: var(--sans); font-size: 0.75rem; font-weight: 600; color: var(--ink);
+  }
+  .dir-c .attend__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+
+  .dir-c .alsoon { padding-top: clamp(2.5rem, 5vw, 3.5rem); }
+  .dir-c .alsoon__list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.75rem; list-style: none; padding: 0; }
+  .dir-c .alsoon__list li { border-top: 1px solid var(--line); padding-top: 0.85rem; }
+  .dir-c .alsoon__list h3 { font-size: 1.0625rem; margin: 0.45rem 0 0.35rem; }
+  .dir-c .alsoon__list h3 a { text-decoration-color: var(--line-strong); }
+  .dir-c .alsoon__summary { font-size: 0.875rem; color: var(--muted); line-height: 1.55; }
+
+  @media (max-width: 48rem) {
+    .dir-c .alsoon__list { grid-template-columns: 1fr; }
+  }
+</style>

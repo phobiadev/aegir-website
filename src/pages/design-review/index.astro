@@ -1,0 +1,291 @@
+---
+/**
+ * Comparison page. Deliberately NOT one of the society-facing designs — it has
+ * its own neutral review styling so it never influences how A, B or C read.
+ * All evaluation notes live here and nowhere else.
+ */
+import '../../styles/reset.css';
+import '@fontsource-variable/archivo';
+import { events, featuredEventSlug } from '../../data/sample-content';
+import { site } from '../../config/site';
+
+const sample = featuredEventSlug;
+
+const directions = [
+  {
+    key: 'a',
+    name: 'Ink & Paper',
+    strap: 'Illustration-led editorial broadsheet',
+    ground: '#f9f1de',
+    swatches: ['#f9f1de', '#14120e', '#c98a12'],
+    type: 'Fraunces (display serif) + Archivo (labels)',
+    navModel: 'Centred masthead, nav beneath the rule',
+    eventModel: 'Dated ledger — stacked day/month, ruled rows',
+    assets: 'Three illustrations used large; one photograph as a full-width band',
+    pitch:
+      'The page background is set to the exact cream the illustrations were drawn on, so the ink artwork sits on the page with no visible edge. Reads as a printed society paper.',
+    strengths: ['Strongest use of the supplied artwork', 'Distinctive and hard to mistake for a template', 'Dense events list scans quickly'],
+    tradeoffs: ['Leans hardest on illustration, so it dates with the artwork', 'Least photographic — no sense of the real crowd'],
+  },
+  {
+    key: 'b',
+    name: 'Pint Club',
+    strap: 'Warm poster-style, photo-forward',
+    ground: '#17150f',
+    swatches: ['#17150f', '#f0bc2e', '#f9f1de'],
+    type: 'Archivo Variable, condensed all-caps display',
+    navModel: 'Sticky top bar; full-screen overlay menu on mobile',
+    eventModel: 'Featured card plus a grid, amber date chips',
+    assets: 'Photographs carry the hero and every card; the pint roundel as a badge',
+    pitch:
+      'The loudest and most social of the three. Alternating ink and cream sections with amber as the active colour, and real photographs doing the persuading.',
+    strengths: ['Most immediately appealing to new students', 'Events look like things you book, not things you read about', 'Scales well as more photos arrive'],
+    tradeoffs: ['Depends on a steady supply of good photographs', 'Least formal — may undersell the society to colleges or sponsors'],
+  },
+  {
+    key: 'c',
+    name: 'Common Room',
+    strap: 'Quiet, structured, institutional',
+    ground: '#fcfbf8',
+    swatches: ['#fcfbf8', '#1d1b16', '#8a6a1a'],
+    type: 'Source Serif 4 (text) + Archivo (labels)',
+    navModel: 'Persistent left sidebar; collapses to a top bar on mobile',
+    eventModel: 'Termcard table — date, event, venue, guests, status',
+    assets: 'Illustrations small and sparing as section marks; no photography',
+    pitch:
+      'The most credible to an outside reader. A real termcard table rather than a list of cards, and enough restraint that the society looks organised rather than loud.',
+    strengths: ['Most information per screen', 'Ages best and survives a weak photo term', 'Sidebar scales as pages are added'],
+    tradeoffs: ['Quietest — least likely to stop a scroll', 'Uses the least of the supplied artwork'],
+  },
+];
+---
+
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Design review — three directions for Aegir</title>
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="review">
+    <header class="rv-head">
+      <div class="rv-shell">
+        <p class="rv-kicker">Aegir &middot; Stage 1 &middot; Design exploration</p>
+        <h1>Three directions to choose between</h1>
+        <p class="rv-lede">
+          Each option below is a working prototype, not a mockup. All three use
+          exactly the same sample content and draw on the same pool of supplied
+          assets, so the only thing that differs is the design.
+        </p>
+        <p class="rv-note">
+          <strong>Everything is placeholder content.</strong> Event names, dates,
+          prices and copy are invented examples written to exercise the layouts.
+          Committee entries show roles only — no invented names, photographs or
+          biographies. Links marked <span class="rv-glyph">&#8257;</span> have no
+          destination yet.
+        </p>
+      </div>
+    </header>
+
+    <main class="rv-shell">
+      <section class="rv-cards">
+        {directions.map((d) => (
+          <article class="rv-card">
+            <div class="rv-card__top" style={`background:${d.ground}`}>
+              <span class="rv-card__letter" style={`color:${d.key === 'b' ? '#f0bc2e' : '#14120e'}`}>{d.key.toUpperCase()}</span>
+              <div class="rv-card__swatches">
+                {d.swatches.map((s) => <span style={`background:${s}`} title={s}></span>)}
+              </div>
+            </div>
+            <div class="rv-card__body">
+              <h2>{d.name}</h2>
+              <p class="rv-card__strap">{d.strap}</p>
+              <p class="rv-card__pitch">{d.pitch}</p>
+
+              <dl class="rv-spec">
+                <div><dt>Typography</dt><dd>{d.type}</dd></div>
+                <div><dt>Navigation</dt><dd>{d.navModel}</dd></div>
+                <div><dt>Events shown as</dt><dd>{d.eventModel}</dd></div>
+                <div><dt>Asset use</dt><dd>{d.assets}</dd></div>
+              </dl>
+
+              <div class="rv-pros">
+                <div>
+                  <p class="rv-pros__head">Strengths</p>
+                  <ul>{d.strengths.map((s) => <li>{s}</li>)}</ul>
+                </div>
+                <div>
+                  <p class="rv-pros__head rv-pros__head--con">Trade-offs</p>
+                  <ul>{d.tradeoffs.map((s) => <li>{s}</li>)}</ul>
+                </div>
+              </div>
+
+              <div class="rv-card__links">
+                <a class="rv-btn rv-btn--solid" href={`/design-review/${d.key}/`}>Open homepage</a>
+                <a class="rv-btn" href={`/design-review/${d.key}/events/${sample}/`}>Event page</a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <section class="rv-section">
+        <h2 class="rv-h2">How to compare them fairly</h2>
+        <ol class="rv-steps">
+          <li>Open all three homepages in separate tabs and switch between them at full width.</li>
+          <li>Narrow the window to roughly 390px, or open them on a phone, and look at the events section in each. The three handle a small screen very differently.</li>
+          <li>Open the same event page in each direction — all three show <em>{sample.replace(/-/g, ' ')}</em> — and compare how the practical details are presented.</li>
+          <li>Use the pill at the bottom of any prototype to jump straight between A, B and C.</li>
+        </ol>
+      </section>
+
+      <section class="rv-section">
+        <h2 class="rv-h2">What works and what doesn't</h2>
+        <div class="rv-status">
+          <div>
+            <p class="rv-status__head rv-status__head--yes">Working in all three</p>
+            <ul>
+              <li>Every navigation link, including the mobile menu in B and the collapsing sidebar in C</li>
+              <li>All four event pages per direction, reachable from the homepage</li>
+              <li>Breadcrumbs, in-page anchors and the prototype switcher</li>
+              <li>Responsive layout from roughly 320px upwards</li>
+            </ul>
+          </div>
+          <div>
+            <p class="rv-status__head rv-status__head--no">Placeholder &#8257;</p>
+            <ul>
+              <li><strong>Mailing-list signup</strong> — the society's real URL has not been supplied, so every signup button is inert</li>
+              <li><strong>Booking and calendar export</strong> — out of scope at this stage</li>
+              <li><strong>Past-events archive, contact page, Instagram link</strong> — not built</li>
+              <li><strong>Logo</strong> — not yet supplied, so all three show a typographic &ldquo;{site.name}&rdquo;</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="rv-section">
+        <h2 class="rv-h2">Shared sample content</h2>
+        <p class="rv-body">
+          All three directions import the same content module, so no option gets
+          flattering copy the others do not. It contains {events.length} example
+          events, three announcements and six committee roles.
+        </p>
+        <ul class="rv-events">
+          {events.map((e) => (
+            <li>
+              <span class="rv-events__name">{e.title}</span>
+              <span class="rv-events__meta">{e.venue} &middot; {e.status}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="rv-section">
+        <h2 class="rv-h2">Needed before the next stage</h2>
+        <ul class="rv-needs">
+          <li><strong>The logo artwork.</strong> Drop it into <code>reference-assets/graphics/</code>. A hand-drawn roundel appears inside <code>photos/IMG_3815.PNG</code> and is probably the real emblem, but that file is a phone screenshot and too soft to use.</li>
+          <li><strong>The mailing-list signup URL.</strong> Every call to action across all three directions depends on it.</li>
+          <li><strong>Committee names and roles</strong>, once the current committee is happy to have them published.</li>
+          <li><strong>More photographs of actual society events.</strong> Four of the ten supplied were usable; the rest were personal snapshots.</li>
+          <li><strong>Real event copy</strong> for whichever direction is chosen.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="rv-foot">
+      <div class="rv-shell">
+        <p>Aegir — design exploration. Nothing here is published; this is a local prototype only.</p>
+      </div>
+    </footer>
+
+    <style is:global>
+      .review {
+        --bg: #ffffff;
+        --panel: #f6f6f4;
+        --ink: #1a1a18;
+        --muted: #63615a;
+        --line: #e2e1dc;
+        --accent: #8a6a1a;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+        font-size: 16px;
+      }
+      .review .rv-shell { width: min(100% - 2.5rem, 76rem); margin-inline: auto; }
+
+      .rv-head { border-bottom: 1px solid var(--line); padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(2rem, 4vw, 3rem); background: var(--panel); }
+      .rv-kicker { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent); margin-bottom: 1rem; }
+      .rv-head h1 { font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem); line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 1rem; }
+      .rv-lede { font-size: 1.125rem; color: var(--muted); max-width: 62ch; line-height: 1.6; }
+      .rv-note { margin-top: 1.5rem; padding: 1rem 1.15rem; background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--accent); font-size: 0.875rem; line-height: 1.65; max-width: 72ch; color: var(--muted); }
+      .rv-note strong { color: var(--ink); }
+      .rv-glyph { color: var(--accent); font-weight: 700; }
+
+      .rv-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; padding: clamp(2rem, 4vw, 3rem) 0; }
+      .rv-card { border: 1px solid var(--line); display: flex; flex-direction: column; background: #fff; }
+      .rv-card__top { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.35rem; border-bottom: 1px solid var(--line); }
+      .rv-card__letter { font-size: 2.5rem; font-weight: 800; line-height: 1; }
+      .rv-card__swatches { display: flex; gap: 0.3rem; }
+      .rv-card__swatches span { width: 1.1rem; height: 1.1rem; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.18); }
+      .rv-card__body { padding: 1.35rem; display: flex; flex-direction: column; flex: 1; }
+      .rv-card__body h2 { font-size: 1.375rem; letter-spacing: -0.01em; }
+      .rv-card__strap { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin: 0.3rem 0 0.9rem; font-weight: 600; }
+      .rv-card__pitch { font-size: 0.9375rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.25rem; }
+
+      .rv-spec { border-top: 1px solid var(--line); margin-bottom: 1.25rem; }
+      .rv-spec > div { padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+      .rv-spec dt { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.2rem; }
+      .rv-spec dd { font-size: 0.8125rem; line-height: 1.5; }
+
+      .rv-pros { display: grid; gap: 1rem; margin-bottom: 1.5rem; }
+      .rv-pros__head { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #2f6b36; margin-bottom: 0.4rem; }
+      .rv-pros__head--con { color: #8a4a1a; }
+      .rv-pros ul { list-style: none; padding: 0; display: grid; gap: 0.3rem; }
+      .rv-pros li { font-size: 0.8125rem; color: var(--muted); line-height: 1.5; padding-left: 0.9rem; position: relative; }
+      .rv-pros li::before { content: '—'; position: absolute; left: 0; color: var(--line); }
+
+      .rv-card__links { display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap; }
+      .rv-btn { display: inline-block; text-decoration: none; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; padding: 0.65rem 1rem; border: 1px solid var(--ink); color: var(--ink); }
+      .rv-btn:hover { background: var(--panel); }
+      .rv-btn--solid { background: var(--ink); color: #fff; }
+      .rv-btn--solid:hover { background: #333; color: #fff; }
+
+      .rv-section { padding: clamp(1.75rem, 3vw, 2.5rem) 0; border-top: 1px solid var(--line); }
+      .rv-h2 { font-size: 1.25rem; letter-spacing: -0.01em; margin-bottom: 1rem; }
+      .rv-body { font-size: 0.9375rem; color: var(--muted); max-width: 70ch; line-height: 1.65; margin-bottom: 1rem; }
+      .rv-steps { padding-left: 1.2rem; display: grid; gap: 0.5rem; font-size: 0.9375rem; color: var(--muted); max-width: 76ch; line-height: 1.6; }
+
+      .rv-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; }
+      .rv-status__head { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 0.7rem; }
+      .rv-status__head--yes { color: #2f6b36; }
+      .rv-status__head--no { color: #8a4a1a; }
+      .rv-status ul { list-style: none; padding: 0; display: grid; gap: 0.5rem; }
+      .rv-status li { font-size: 0.875rem; color: var(--muted); line-height: 1.55; padding-left: 1rem; position: relative; }
+      .rv-status li::before { content: '·'; position: absolute; left: 0.2rem; font-weight: 700; }
+      .rv-status strong { color: var(--ink); }
+
+      .rv-events { list-style: none; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); max-width: 60rem; }
+      .rv-events li { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1rem; padding: 0.65rem 0; border-bottom: 1px solid var(--line); }
+      .rv-events__name { font-size: 0.875rem; font-weight: 600; }
+      .rv-events__meta { font-size: 0.75rem; color: var(--muted); }
+
+      .rv-needs { list-style: none; padding: 0; display: grid; gap: 0.7rem; max-width: 76ch; }
+      .rv-needs li { font-size: 0.9375rem; color: var(--muted); line-height: 1.6; padding-left: 1.1rem; position: relative; }
+      .rv-needs li::before { content: '→'; position: absolute; left: 0; color: var(--accent); }
+      .rv-needs strong { color: var(--ink); }
+      .rv-needs code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125em; background: var(--panel); padding: 0.1em 0.35em; border-radius: 3px; }
+
+      .rv-foot { border-top: 1px solid var(--line); margin-top: 2rem; padding: 1.5rem 0 3rem; }
+      .rv-foot p { font-size: 0.8125rem; color: var(--muted); }
+
+      @media (max-width: 64rem) {
+        .rv-cards { grid-template-columns: 1fr; }
+        .rv-pros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      }
+      @media (max-width: 44rem) {
+        .rv-status { grid-template-columns: 1fr; }
+        .rv-pros { grid-template-columns: 1fr; }
+      }
+    </style>
+  </body>
+</html>

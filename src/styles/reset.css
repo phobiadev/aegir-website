@@ -1,0 +1,48 @@
+/* Minimal shared reset. Deliberately opinion-free so each direction's own
+   stylesheet carries the whole visual identity. */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body { -webkit-font-smoothing: antialiased; line-height: 1.5; }
+img, picture, svg, video { display: block; max-width: 100%; }
+input, button, textarea, select { font: inherit; color: inherit; }
+p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
+h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
+ul[class], ol[class] { list-style: none; padding: 0; }
+a { color: inherit; }
+
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Shared convention for links that have no destination in this prototype.
+   Each direction re-colours these but the affordance stays consistent. */
+a[data-placeholder] {
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+a[data-placeholder]::after {
+  content: '\2041';
+  font-size: 0.75em;
+  vertical-align: super;
+  margin-inline-start: 0.15em;
+  opacity: 0.65;
+}
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}

@@ -1,0 +1,154 @@
+---
+import DirectionB from '../../../../layouts/DirectionB.astro';
+import { events, formatDate, dayNumber, monthShort } from '../../../../data/sample-content';
+import { site } from '../../../../config/site';
+
+export function getStaticPaths() {
+  return events.map((event) => ({ params: { slug: event.slug }, props: { event } }));
+}
+
+const { event } = Astro.props;
+const others = events.filter((e) => e.slug !== event.slug).slice(0, 3);
+---
+
+<DirectionB title={event.title} section="events">
+  <!-- ===== Poster header ===== -->
+  <section class="poster">
+    <img class="poster__photo" src={event.image!} alt={event.imageAlt!} width="1050" height="1400" fetchpriority="high" decoding="async" />
+    <div class="poster__scrim"></div>
+    <div class="shell poster__content">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href="/design-review/b/">Home</a>
+        <span aria-hidden="true">&rsaquo;</span>
+        <a href="/design-review/b/#events">Events</a>
+      </nav>
+      <p class="poster__chips">
+        <span class="chip chip--amber">{dayNumber(event.date)} {monthShort(event.date)}</span>
+        <span class="chip chip--outline">{event.status}</span>
+        {event.example && <span class="example-flag">Example event</span>}
+      </p>
+      <h1 class="display poster__title">{event.title}</h1>
+      <p class="poster__summary">{event.summary}</p>
+    </div>
+  </section>
+
+  <!-- ===== Body + sticky sidebar ===== -->
+  <section class="section detail">
+    <div class="shell detail__grid">
+      <div class="detail__body">
+        {event.body.map((para) => <p>{para}</p>)}
+
+        <h2 class="display detail__sub">Getting there</h2>
+        <p>
+          The venue is{' '}
+          <a href="#" data-placeholder title="A map link is not wired up in this prototype">on the society map</a>.
+          If you need step-free access or have any other requirement, tell the
+          Secretary when you book and it will be arranged.
+        </p>
+      </div>
+
+      <aside class="detail__side">
+        <div class="bookbox">
+          <p class="bookbox__head">Book this event</p>
+          <dl class="bookbox__facts">
+            <div><dt>Date</dt><dd>{formatDate(event.date)}</dd></div>
+            <div><dt>Time</dt><dd>{event.startTime}{event.endTime ? `–${event.endTime}` : ''}</dd></div>
+            <div><dt>Venue</dt><dd>{event.venue}</dd></div>
+            <div><dt>Price</dt><dd>{event.price}</dd></div>
+            <div><dt>Guests</dt><dd>{event.guests}</dd></div>
+            {event.dress && <div><dt>Dress</dt><dd>{event.dress}</dd></div>}
+          </dl>
+          <a
+            class="btn btn--amber bookbox__btn"
+            href={site.mailingListUrl ?? '#'}
+            data-placeholder={site.mailingListUrl ? undefined : true}
+            title={site.mailingListUrl ? undefined : 'Booking is not wired up in this prototype'}
+          >Book a place</a>
+          <a class="bookbox__alt" href="#" data-placeholder title="Calendar export is not part of this prototype">Add to calendar</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== More events ===== -->
+  <section class="section section--cream-deep">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">Keep going</p>
+        <h2 class="display">More this term</h2>
+      </div>
+      <ul class="cards">
+        {others.map((e) => (
+          <li class="card">
+            <a class="card__media" href={`/design-review/b/events/${e.slug}/`}>
+              <img src={e.image!} alt={e.imageAlt!} width="1050" height="1400" loading="lazy" decoding="async" />
+              <span class="card__date">
+                <span class="card__day">{dayNumber(e.date)}</span>
+                <span class="card__mon">{monthShort(e.date)}</span>
+              </span>
+            </a>
+            <div class="card__body">
+              <h3 class="card__title"><a href={`/design-review/b/events/${e.slug}/`}>{e.title}</a></h3>
+              <p class="card__summary">{e.summary}</p>
+              <span class={`chip chip--${e.status.toLowerCase().replace(/\s+/g, '-')}`}>{e.status}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</DirectionB>
+
+<style is:global>
+  .dir-b .poster { position: relative; isolation: isolate; display: flex; align-items: flex-end; min-height: min(62vh, 34rem); }
+  .dir-b .poster__photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; z-index: -2; }
+  .dir-b .poster__scrim {
+    position: absolute; inset: 0; z-index: -1;
+    background: linear-gradient(180deg, rgba(23,21,15,0.5) 0%, rgba(23,21,15,0.78) 55%, rgba(23,21,15,0.95) 100%);
+  }
+  .dir-b .poster__content { padding: clamp(2.5rem, 6vw, 4.5rem) 0 clamp(2rem, 4vw, 3rem); color: var(--on-ink); }
+
+  .dir-b .crumb {
+    display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem;
+    font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--on-ink-soft);
+  }
+  .dir-b .crumb a { text-decoration: none; }
+  .dir-b .crumb a:hover { color: var(--amber); }
+
+  .dir-b .poster__chips { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1.1rem; }
+  .dir-b .chip--outline { border-color: var(--amber); color: var(--amber); }
+  .dir-b .poster__title { font-size: clamp(2rem, 1rem + 4.4vw, 4.25rem); max-width: 17ch; margin-bottom: 1rem; }
+  .dir-b .poster__summary { font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem); max-width: 50ch; color: #e8e0cc; line-height: 1.55; }
+
+  .dir-b .detail__grid { display: grid; grid-template-columns: minmax(0, 1fr) 19rem; gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+  .dir-b .detail__body { max-width: 60ch; font-size: 1.0625rem; line-height: 1.7; }
+  .dir-b .detail__body > p { margin-bottom: 1.2rem; }
+  .dir-b .detail__body > p:first-of-type { font-size: 1.1875rem; }
+  .dir-b .detail__sub { font-size: 1.375rem; margin: 2.25rem 0 0.85rem; }
+  .dir-b .detail__body a { text-underline-offset: 3px; }
+
+  .dir-b .detail__side { position: sticky; top: 5.75rem; }
+  .dir-b .bookbox { background: var(--ink); color: var(--on-ink); padding: 1.5rem; border-top: 6px solid var(--amber); }
+  .dir-b .bookbox__head {
+    font-size: 0.6875rem; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.16em; color: var(--amber); margin-bottom: 1.1rem;
+  }
+  .dir-b .bookbox__facts > div { padding: 0.6rem 0; border-bottom: 1px solid rgba(246,239,221,0.14); }
+  .dir-b .bookbox__facts dt {
+    font-size: 0.625rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--on-ink-soft); margin-bottom: 0.2rem;
+  }
+  .dir-b .bookbox__facts dd { font-size: 0.9375rem; font-weight: 600; }
+  .dir-b .bookbox__btn { display: block; text-align: center; margin-top: 1.4rem; }
+  .dir-b .bookbox__alt {
+    display: block; text-align: center; margin-top: 0.85rem;
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--on-ink-soft);
+  }
+
+  @media (max-width: 62rem) {
+    .dir-b .detail__grid { grid-template-columns: 1fr; }
+    .dir-b .detail__side { position: static; }
+  }
+</style>
