@@ -1,0 +1,62 @@
+---
+/**
+ * Placeholder for the society's emblem.
+ *
+ * The real logo has not been supplied yet. It is a circular hand-drawn mark in
+ * the same ink style as the four supplied illustrations — see `ASSETS.md` §3 —
+ * so this placeholder is round, not a rectangle, and sized to the space the
+ * real file will occupy.
+ *
+ * Every header and footer already branches on `site.logo`. The moment that
+ * config value is set to a real file, these slots disappear and the artwork
+ * takes their place; nothing else needs touching.
+ */
+interface Props {
+  /** Diameter, as any CSS length. */
+  size?: string;
+  /** Caption inside the ring. Pass an empty string where there is no room. */
+  label?: string;
+  class?: string;
+}
+const { size = '2.5rem', label = 'Logo', class: cls = '' } = Astro.props;
+---
+
+<span
+  class:list={['logoslot', cls]}
+  style={`--logoslot-size:${size}`}
+  role="img"
+  aria-label="Logo placeholder — the society emblem has not been supplied yet"
+  title="The society’s emblem has not been supplied yet"
+>
+  {label && <span class="logoslot__label">{label}</span>}
+</span>
+
+<style is:global>
+  .logoslot {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: var(--logoslot-size);
+    height: var(--logoslot-size);
+    border-radius: 50%;
+    /* `color` is set by the layout to something that passes AA on its ground. */
+    border: 1px dashed color-mix(in srgb, currentColor 55%, transparent);
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, currentColor 14%, transparent) 0 1px,
+      transparent 1px 9px
+    );
+    background-clip: padding-box;
+    overflow: hidden;
+  }
+  .logoslot__label {
+    font-size: 0.5rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+    text-align: center;
+    padding: 0.15rem 0.2rem;
+    background-color: inherit;
+  }
+</style>

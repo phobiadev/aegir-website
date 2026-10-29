@@ -1,0 +1,32 @@
+---
+/**
+ * One announcement, as a card on the homepage or a row on the listing.
+ * Styles live in `Site.astro` — both pages use them.
+ */
+import { url } from '../lib/urls.ts';
+import { text, type AnnouncementEntry } from '../lib/content.ts';
+import { formatDate, machineDate } from '../lib/datetime.ts';
+
+interface Props {
+  announcement: AnnouncementEntry;
+  /** First line of the body, shown as a summary on listings. */
+  summary?: string;
+  /** Show the picture, where there is one. */
+  withImage?: boolean;
+}
+const { announcement, summary, withImage = false } = Astro.props;
+const { title, date, image, imageAlt } = announcement.data;
+const href = url(`/announcements/${announcement.id}/`);
+---
+
+<li class="note">
+  {withImage && image && (
+    <a class="note__thumb" href={href} tabindex="-1" aria-hidden="true">
+      <img src={url(image)} alt={imageAlt ?? ''} loading="lazy" decoding="async" />
+    </a>
+  )}
+  <p class="note__date"><time datetime={machineDate(date)}>{formatDate(date)}</time></p>
+  <h3 class="note__title"><a href={href}>{title}</a></h3>
+  {summary && <p class="note__body">{summary}</p>}
+  <a class="note__more" href={href}>{text.announcementDetailLink} &rarr;</a>
+</li>

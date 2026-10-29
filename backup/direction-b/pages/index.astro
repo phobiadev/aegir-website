@@ -1,0 +1,271 @@
+---
+import Site from '../layouts/Site.astro';
+import ImageSlot from '../legacy/ImageSlot.astro';
+import { events, announcements, committee, copy, labels, formatDate, dayNumber, monthShort } from '../legacy/sample-content';
+import { artwork, photos } from '../config/artwork';
+import { site } from '../legacy/site';
+
+const [featured, ...rest] = events;
+---
+
+<Site title="Home">
+  <!-- ===== Hero — the one real photograph on the page ===== -->
+  <section class="hero">
+    <img
+      class="hero__photo"
+      src={photos.beerTent.src}
+      alt={photos.beerTent.alt}
+      width={photos.beerTent.width} height={photos.beerTent.height}
+      fetchpriority="high" decoding="async"
+    />
+    <div class="hero__scrim"></div>
+    <div class="shell hero__content">
+      <div class="plate plate--roundel hero__stamp">
+        <img
+          src={artwork.pintRoundel.src} alt={artwork.pintRoundel.alt}
+          width={artwork.pintRoundel.width} height={artwork.pintRoundel.height}
+          decoding="async"
+        />
+      </div>
+      <h1 class="display hero__head">{copy.introHeading}</h1>
+      <p class="hero__lede">{copy.introLead}</p>
+      <div class="hero__actions">
+        <a href="#events" class="btn btn--amber">{labels.primary}</a>
+        <a href="#mailing" class="btn btn--ghost">{labels.secondary}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Featured event ===== -->
+  <section id="events" class="section">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">{labels.eyebrow}</p>
+        <h2 class="display">{labels.events}</h2>
+        <span class="example-flag">Placeholder content</span>
+      </div>
+
+      <article class="feature">
+        <a class="feature__media" href={`/events/${featured!.slug}/`}>
+          <ImageSlot fill />
+        </a>
+        <div class="feature__body">
+          <p class="chip chip--amber">
+            {dayNumber(featured!.date)} {monthShort(featured!.date)} &middot; {featured!.startTime}
+          </p>
+          <h3 class="display feature__title">
+            <a href={`/events/${featured!.slug}/`}>{featured!.title}</a>
+          </h3>
+          <p class="feature__summary">{featured!.summary}</p>
+          <dl class="feature__facts">
+            <div><dt>Venue</dt><dd>{featured!.venue}</dd></div>
+            <div><dt>Price</dt><dd>{featured!.price}</dd></div>
+            <div><dt>Status</dt><dd>{featured!.status}</dd></div>
+          </dl>
+          <a class="btn btn--ink" href={`/events/${featured!.slug}/`}>{labels.detail}</a>
+        </div>
+      </article>
+
+      <ul class="cards">
+        {rest.map((ev) => (
+          <li class="card">
+            <a class="card__media" href={`/events/${ev.slug}/`}>
+              <ImageSlot ratio="4 / 3" />
+              <span class="card__date">
+                <span class="card__day">{dayNumber(ev.date)}</span>
+                <span class="card__mon">{monthShort(ev.date)}</span>
+              </span>
+            </a>
+            <div class="card__body">
+              <h3 class="card__title"><a href={`/events/${ev.slug}/`}>{ev.title}</a></h3>
+              <p class="card__summary">{ev.summary}</p>
+              <p class="card__meta">{ev.venue}</p>
+              <span class={`chip chip--${ev.status.toLowerCase().replace(/\s+/g, '-')}`}>{ev.status}</span>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== Announcements ===== -->
+  <section id="announcements" class="section section--ink">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">{labels.eyebrow}</p>
+        <h2 class="display">{labels.announcements}</h2>
+      </div>
+      <ul class="notes">
+        {announcements.map((a) => (
+          <li class="note">
+            <p class="note__date">{formatDate(a.date)}</p>
+            <h3 class="note__title">{a.title}</h3>
+            <p class="note__body">{a.body}</p>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== About ===== -->
+  <section id="about" class="section">
+    <div class="shell about">
+      <div class="about__text">
+        <p class="eyebrow">{labels.eyebrow}</p>
+        <h2 class="display">{copy.aboutHeading}</h2>
+        <p class="about__lede">{copy.aboutBody}</p>
+        <p class="about__body">{copy.aboutMore}</p>
+        <a class="btn btn--ghost" href="#" data-placeholder title="A full About page is not part of this prototype">{labels.secondary}</a>
+      </div>
+      <img
+        class="art about__art"
+        src={artwork.disco.src} alt={artwork.disco.alt}
+        width={artwork.disco.width} height={artwork.disco.height}
+        loading="lazy" decoding="async"
+      />
+    </div>
+  </section>
+
+  <!-- ===== Committee ===== -->
+  <section class="section section--cream-deep">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">{labels.eyebrow}</p>
+        <h2 class="display">{labels.committee}</h2>
+      </div>
+      <div class="crewgrid">
+        <div>
+          <ul class="crew">
+            {committee.map((c) => (
+              <li class="crew__item">
+                <p class="crew__role">{c.role}</p>
+                <p class="crew__holder">{c.holder}</p>
+                <p class="crew__remit">{c.remit}</p>
+              </li>
+            ))}
+          </ul>
+          <p class="crew__note">{copy.committeeNote}</p>
+        </div>
+        <div class="plate plate--bottle crewgrid__art">
+          <img
+            src={artwork.bottleWalk.src} alt={artwork.bottleWalk.alt}
+            width={artwork.bottleWalk.width} height={artwork.bottleWalk.height}
+            loading="lazy" decoding="async"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Mailing list ===== -->
+  <section id="mailing" class="mailband">
+    <div class="shell mailband__inner">
+      <div>
+        <h2 class="display mailband__head">{copy.mailingHeading}</h2>
+        <p class="mailband__body">{copy.mailingBody}</p>
+      </div>
+      <a
+        class="btn btn--ink mailband__btn"
+        href={site.mailingListUrl ?? '#'}
+        data-placeholder={site.mailingListUrl ? undefined : true}
+        title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+      >{copy.mailingCta}</a>
+    </div>
+  </section>
+</Site>
+
+<style is:global>
+  /* ---------- Hero ---------- */
+  .site .hero { position: relative; isolation: isolate; min-height: min(78vh, 42rem); display: flex; align-items: flex-end; }
+  /* The subject's face sits about 22% down the frame, so a centred crop cuts
+     across it at wide viewports. 25% puts him in the upper fifth of the band. */
+  .site .hero__photo {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; object-position: center 25%; z-index: -2;
+  }
+  .site .hero__scrim {
+    position: absolute; inset: 0; z-index: -1;
+    /* Lighter at the top than it was, so the faces read; still dark enough
+       under the type at the bottom to clear AA. */
+    background: linear-gradient(180deg, rgba(23,21,15,0.3) 0%, rgba(23,21,15,0.48) 38%, rgba(23,21,15,0.86) 72%, rgba(23,21,15,0.96) 100%);
+  }
+  .site .hero__content { padding: clamp(3rem, 8vw, 6rem) 0 clamp(2.5rem, 5vw, 4rem); color: var(--on-ink); }
+  /* The stamp: the pint roundel on its own paper, outlined in amber so it
+     reads as mounted rather than cut out of the photograph behind it. */
+  .site .hero__stamp {
+    width: 7rem; margin-bottom: 1.5rem;
+    border-color: var(--amber); box-shadow: 0 0 0 1px rgba(23,21,15,0.5);
+  }
+  .site .hero__head { font-size: clamp(2.25rem, 1.1rem + 4.6vw, 4.75rem); max-width: 18ch; margin-bottom: 1.25rem; }
+  .site .hero__lede { font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem); max-width: 48ch; color: #e8e0cc; line-height: 1.55; }
+  .site .hero__actions { display: flex; flex-wrap: wrap; gap: 0.85rem; margin-top: 2rem; }
+
+  /* ---------- Featured event ---------- */
+  .site .feature {
+    display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+    background: var(--cream-deep); border: 3px solid var(--ink);
+    margin-bottom: 2.5rem;
+  }
+  .site .feature__media { display: grid; min-height: 20rem; }
+  .site .feature__body { padding: clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.5rem) 0; align-self: center; }
+  .site .feature__title { font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.25rem); margin: 1rem 0 0.75rem; }
+  .site .feature__title a { text-decoration: none; }
+  .site .feature__title a:hover { color: #7f6316; }
+  .site .feature__summary { color: var(--ink-soft); max-width: 46ch; line-height: 1.6; }
+  .site .feature__facts { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 1.5rem 0; }
+  .site .feature__facts dt {
+    font-size: 0.625rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--ink-soft); margin-bottom: 0.2rem;
+  }
+  .site .feature__facts dd { font-size: 0.9375rem; font-weight: 600; }
+
+  /* ---------- Announcements ---------- */
+  .site .notes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; list-style: none; padding: 0; }
+  .site .note { border-top: 3px solid var(--amber); padding-top: 1.1rem; }
+  .site .note__date {
+    font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--amber); margin-bottom: 0.6rem;
+  }
+  .site .note__title { font-size: 1.1875rem; font-weight: 700; line-height: 1.25; margin-bottom: 0.5rem; }
+  .site .note__body { font-size: 0.9375rem; color: var(--on-ink-soft); line-height: 1.6; }
+
+  /* ---------- About ---------- */
+  .site .about { display: grid; grid-template-columns: minmax(0, 1fr) 16rem; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+  .site .about__lede { font-size: 1.1875rem; line-height: 1.55; margin: 1rem 0; max-width: 48ch; }
+  .site .about__body { color: var(--ink-soft); max-width: 50ch; line-height: 1.65; margin-bottom: 1.75rem; }
+  /* disco's paper is B's own cream, so no plate and no visible edge. */
+  .site .about__art { width: 100%; }
+
+  /* ---------- Committee ---------- */
+  .site .crewgrid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
+  .site .crew { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; list-style: none; padding: 0; }
+  .site .crew__item { background: var(--cream); border: 2px solid var(--ink); border-left-width: 6px; border-left-color: var(--amber); padding: 1.1rem 1.25rem; }
+  .site .crew__role { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--amber-deep); margin-bottom: 0.45rem; }
+  .site .crew__holder { font-size: 1.0625rem; font-weight: 700; margin-bottom: 0.25rem; }
+  .site .crew__remit { font-size: 0.8125rem; color: var(--ink-soft); line-height: 1.5; }
+  .site .crew__note { margin-top: 1.5rem; font-size: 0.8125rem; color: var(--ink-soft); max-width: 52ch; line-height: 1.6; }
+
+  /* ---------- Mailing band ---------- */
+  .site .mailband { background: var(--amber); padding: clamp(2.5rem, 5vw, 4rem) 0; }
+  .site .mailband__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem; }
+  .site .mailband__head { font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem); margin-bottom: 0.65rem; }
+  .site .mailband__body { max-width: 46ch; line-height: 1.6; }
+  .site .mailband__btn { flex-shrink: 0; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 62rem) {
+    .site .notes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .site .crewgrid { grid-template-columns: 1fr; }
+    .site .crewgrid__art { max-width: 13rem; }
+    .site .feature { grid-template-columns: 1fr; }
+    .site .feature__media { min-height: 14rem; }
+    .site .feature__body { padding: 0 clamp(1.25rem, 4vw, 2rem) clamp(1.5rem, 4vw, 2rem); }
+    .site .about { grid-template-columns: 1fr; }
+    .site .about__art { max-width: 12rem; }
+  }
+  @media (max-width: 44rem) {
+    .site .notes, .site .crew { grid-template-columns: 1fr; }
+    .site .mailband__inner { flex-direction: column; align-items: flex-start; }
+  }
+</style>

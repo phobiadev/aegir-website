@@ -1,10 +1,13 @@
-/* Minimal shared reset. Deliberately opinion-free so each direction's own
+/* Minimal reset. Deliberately opinion-free so the layout's own
    stylesheet carries the whole visual identity. */
 *, *::before, *::after { box-sizing: border-box; }
 * { margin: 0; }
 html { -webkit-text-size-adjust: 100%; }
 body { -webkit-font-smoothing: antialiased; line-height: 1.5; }
 img, picture, svg, video { display: block; max-width: 100%; }
+/* `hidden` must beat a layout `display`: the event lists are grids and are
+   hidden when empty, in the markup and by the regrouping script. */
+[hidden] { display: none !important; }
 input, button, textarea, select { font: inherit; color: inherit; }
 p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
 h1, h2, h3, h4, h5, h6 { text-wrap: balance; }
@@ -26,8 +29,8 @@ a { color: inherit; }
   }
 }
 
-/* Shared convention for links that have no destination in this prototype.
-   Each direction re-colours these but the affordance stays consistent. */
+/* Shared convention for links that have no destination yet.
+   The layout re-colours these; the affordance stays consistent. */
 a[data-placeholder] {
   text-decoration-style: dotted;
   text-underline-offset: 3px;

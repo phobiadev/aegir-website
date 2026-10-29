@@ -1,0 +1,58 @@
+---
+/**
+ * The mailing-list signup button.
+ *
+ * The society already runs a signup service; its URL has not been supplied yet.
+ * Until `mailingList.url` is set in `content/settings/site.json` the button
+ * stays exactly where it belongs, in its normal styling, as an inactive
+ * placeholder: a disabled <button type="button">, which cannot navigate,
+ * cannot submit, and — unlike the `href="#"` it replaces — cannot jump the
+ * reader back to the top of the page.
+ *
+ * Setting the URL turns every instance into a real link. A missing URL never
+ * fails the build.
+ */
+import { settings } from '../lib/content.ts';
+
+interface Props {
+  /** Button classes from the calling page, e.g. 'btn btn--amber'. */
+  class?: string;
+  /** Overrides the wording in settings. */
+  label?: string;
+  /** Show the "no URL yet" explanation underneath. One instance per page. */
+  note?: boolean;
+}
+const { class: cls = 'btn btn--amber', label, note = false } = Astro.props;
+const { url, cta, unavailableNote } = settings.mailingList;
+const text = label ?? cta;
+const noteId = note && !url ? 'mailing-list-note' : undefined;
+---
+
+{url ? (
+  <a class={cls} href={url} rel="noopener">{text}</a>
+) : (
+  <button
+    class:list={[cls, 'is-inactive']}
+    type="button"
+    disabled
+    aria-describedby={noteId}
+    title={unavailableNote}
+  >{text}</button>
+)}
+{noteId && <p class="inactive-note" id={noteId}>{unavailableNote}</p>}
+
+<style is:global>
+  /* Visibly a button, visibly not yet working. Position and size are
+     unchanged, so the real link lands exactly here. */
+  .site .btn.is-inactive {
+    cursor: not-allowed;
+    border-style: dashed;
+    opacity: 0.75;
+  }
+  .site .inactive-note {
+    margin-top: 0.6rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    max-width: 40ch;
+  }
+</style>

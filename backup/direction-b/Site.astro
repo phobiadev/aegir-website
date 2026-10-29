@@ -1,0 +1,459 @@
+---
+/**
+ * Direction B — "Pint Club".
+ * Warm and poster-ish. Alternating ink/cream sections with amber as the active
+ * colour, condensed all-caps display type, and photography carrying the hero.
+ */
+import '../styles/reset.css';
+import '@fontsource-variable/archivo/wdth.css';
+import { site, nav } from '../legacy/site';
+import { artwork } from '../config/artwork';
+import LogoSlot from '../components/LogoSlot.astro';
+
+interface Props {
+  title: string;
+  section?: string;
+}
+const { title, section = 'home' } = Astro.props;
+
+/**
+ * Each illustration's own sampled background colour, emitted once.
+ *
+ * Two of the four match B's `--cream` exactly, so those sit on the plain cream
+ * sections with no visible edge at all. The other two differ by a few units and
+ * are mounted in `.plate` blocks painted with their own paper.
+ *
+ * (`define:vars` is deliberately avoided: combined with `is:global` it stamps
+ * the custom properties onto every element in the page.)
+ */
+const paperVars = `.site {
+  --paper-bottle: ${artwork.bottleWalk.paper};
+  --paper-disco: ${artwork.disco.paper};
+  --paper-roundel: ${artwork.pintRoundel.paper};
+  --paper-stein: ${artwork.steinDive.paper};
+}`;
+---
+
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · {site.name}</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Aegir, the Oxford beer society." />
+    <style is:global set:html={paperVars}></style>
+  </head>
+  <body class="site">
+    <a href="#main" class="skip">Skip to content</a>
+
+    <header class="topbar">
+      <div class="shell topbar__inner">
+        <a href="/" class="topbar__brand">
+          {site.logo
+            ? <img class="topbar__logo" src={site.logo.src} alt={site.logo.alt} width={site.logo.width} height={site.logo.height} />
+            : <LogoSlot size="2.5rem" label="Logo" class="topbar__logo" />}
+          <span class="topbar__wordmark">{site.name}</span>
+          <span class="topbar__tag">{site.tagline}</span>
+        </a>
+
+        <nav class="topnav" aria-label="Primary">
+          <ul class="topnav__list">
+            {nav.map((item) => (
+              <li>
+                {item.key === 'home' ? (
+                  <a href="/" aria-current={section === 'home' ? 'page' : undefined}>{item.label}</a>
+                ) : (
+                  <a href={`/#${item.key}`} aria-current={section === item.key ? 'page' : undefined}>{item.label}</a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <a
+          class="topbar__cta"
+          href={site.mailingListUrl ?? '#'}
+          data-placeholder={site.mailingListUrl ? undefined : true}
+          title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+        >Join</a>
+
+        <button class="burger" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+          <span class="burger__bar"></span>
+          <span class="burger__bar"></span>
+          <span class="burger__bar"></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="sheet" id="mobile-menu" hidden>
+      <div class="sheet__inner">
+        <button class="sheet__close" type="button" aria-label="Close menu">&times;</button>
+        <div class="sheet__brand">
+          {site.logo
+            ? <img src={site.logo.src} alt={site.logo.alt} width={site.logo.width} height={site.logo.height} />
+            : <LogoSlot size="3.25rem" label="Logo" />}
+          <span class="sheet__wordmark">{site.name}</span>
+        </div>
+        <nav aria-label="Mobile">
+          <ul class="sheet__list">
+            {nav.map((item) => (
+              <li>
+                {item.key === 'home'
+                  ? <a href="/">{item.label}</a>
+                  : <a href={`/#${item.key}`}>{item.label}</a>}
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <a
+          class="sheet__cta"
+          href={site.mailingListUrl ?? '#'}
+          data-placeholder={site.mailingListUrl ? undefined : true}
+          title={site.mailingListUrl ? undefined : 'The society’s real signup URL has not been supplied yet'}
+        >Join the mailing list</a>
+        <p class="sheet__social">{site.instagram}</p>
+      </div>
+    </div>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="foot">
+      <div class="shell foot__inner">
+        <div class="foot__brand">
+          {site.logo
+            ? <img class="foot__logo" src={site.logo.src} alt={site.logo.alt} width={site.logo.width} height={site.logo.height} />
+            : <LogoSlot size="5rem" label="Logo" class="foot__logo" />}
+          <div>
+            <p class="foot__mark">{site.name}</p>
+            <p class="foot__tag">{site.tagline}</p>
+          </div>
+        </div>
+        <div class="foot__cols">
+          <div>
+            <p class="foot__head">Society</p>
+            <ul>
+              <li><a href="/#about">About</a></li>
+              <li><a href="/#events">Events</a></li>
+              <li><a href="/#announcements">Announcements</a></li>
+            </ul>
+          </div>
+          <div>
+            <p class="foot__head">Elsewhere</p>
+            <ul>
+              <li><a href="#" data-placeholder title="Instagram link is not wired up in this prototype">Instagram</a></li>
+              <li><a href="#" data-placeholder title="A contact page is not part of this prototype">Contact</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="shell foot__legal">
+        <p>
+          Placeholder content — titles, dates and body text are examples until
+          the society supplies real copy. Links marked{' '}
+          <span class="foot__glyph">&#8257;</span>{' '}
+          have no destination yet.
+        </p>
+        <p>{site.instagram}</p>
+      </div>
+    </footer>
+
+
+    <script>
+      const burger = document.querySelector<HTMLButtonElement>('.burger');
+      const sheet = document.querySelector<HTMLElement>('.sheet');
+      const close = document.querySelector<HTMLButtonElement>('.sheet__close');
+
+      function setOpen(open: boolean) {
+        if (!sheet || !burger) return;
+        sheet.hidden = !open;
+        burger.setAttribute('aria-expanded', String(open));
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) close?.focus();
+        else burger.focus();
+      }
+
+      burger?.addEventListener('click', () => setOpen(sheet?.hidden ?? true));
+      close?.addEventListener('click', () => setOpen(false));
+      sheet?.addEventListener('click', (e) => {
+        if (e.target === sheet) setOpen(false);
+      });
+      // Any in-sheet navigation closes the overlay.
+      sheet?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sheet && !sheet.hidden) setOpen(false);
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .site {
+    --cream: #f9f1de;
+    --cream-deep: #f1e5c9;
+    --ink: #17150f;
+    --ink-2: #211e16;
+    --ink-soft: #554e3e;
+    --amber: #f0bc2e;
+    --amber-deep: #866918;
+    --on-ink: #f6efdd;
+    --on-ink-soft: #b5ab93;
+
+    --sans: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-stretch: 100%;
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  }
+
+  .site .shell { width: min(100% - 2.5rem, 75rem); margin-inline: auto; }
+
+  .site .skip {
+    position: absolute; left: -9999px;
+    background: var(--amber); color: var(--ink);
+    padding: 0.75rem 1.25rem; z-index: 10000; font-weight: 700;
+  }
+  .site .skip:focus { left: 1rem; top: 1rem; }
+
+  /* ---------- Display type ---------- */
+  .site .display {
+    font-stretch: 80%;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.005em;
+    line-height: 0.95;
+  }
+  .site h2.display { font-size: clamp(2rem, 1.3rem + 3vw, 3.5rem); }
+  .site .eyebrow {
+    font-size: 0.6875rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.18em;
+    color: var(--amber-deep);
+  }
+  .site .section--ink .eyebrow { color: var(--amber); }
+
+  /* ---------- Top bar ---------- */
+  .site .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--ink); color: var(--on-ink);
+    border-bottom: 1px solid rgba(240, 188, 46, 0.28);
+  }
+  .site .topbar__inner {
+    display: flex; align-items: center; gap: 1.5rem;
+    min-height: 4.25rem;
+  }
+  .site .topbar__brand {
+    display: flex; align-items: center; gap: 0.7rem;
+    text-decoration: none; margin-inline-end: auto;
+  }
+  /* `img.` on purpose: this must not match the LogoSlot placeholder, whose
+     square height would be overridden by `height: auto` and turn it oval. */
+  .site img.topbar__logo { width: 2.5rem; height: auto; border-radius: 50%; }
+  .site .topbar__wordmark {
+    font-stretch: 80%; font-weight: 800;
+    text-transform: uppercase; font-size: 1.5rem; letter-spacing: 0.01em;
+  }
+  .site .topbar__tag {
+    font-size: 0.6875rem; text-transform: uppercase;
+    letter-spacing: 0.16em; color: var(--on-ink-soft);
+  }
+  .site .topnav__list { display: flex; gap: 1.75rem; }
+  .site .topnav a {
+    text-decoration: none; font-size: 0.8125rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 0.4rem 0; border-bottom: 2px solid transparent;
+  }
+  .site .topnav a:hover,
+  .site .topnav a[aria-current='page'] { border-bottom-color: var(--amber); color: var(--amber); }
+
+  .site .topbar__cta {
+    background: var(--amber); color: var(--ink);
+    padding: 0.6rem 1.1rem; text-decoration: none;
+    font-size: 0.75rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    border-radius: 999px; white-space: nowrap;
+  }
+  .site .topbar__cta:hover { background: var(--on-ink); }
+  .site .topbar__cta[data-placeholder]::after { content: '\2041'; }
+
+  .site .burger {
+    display: none; background: none; border: 0; cursor: pointer;
+    padding: 0.5rem; flex-direction: column; gap: 4px;
+  }
+  .site .burger__bar { display: block; width: 22px; height: 2px; background: var(--on-ink); }
+
+  /* ---------- Mobile sheet ---------- */
+  .site .sheet { position: fixed; inset: 0; z-index: 200; background: rgba(23, 21, 15, 0.97); }
+  .site .sheet[hidden] { display: none; }
+  .site .sheet__inner {
+    display: flex; flex-direction: column; gap: 2rem;
+    padding: 5rem 2rem 2rem; height: 100%; color: var(--on-ink);
+  }
+  .site .sheet__close {
+    position: absolute; top: 1.1rem; right: 1.4rem;
+    background: none; border: 0; color: var(--on-ink);
+    font-size: 2.5rem; line-height: 1; cursor: pointer;
+  }
+  .site .sheet__brand { display: flex; align-items: center; gap: 0.85rem; }
+  .site .sheet__brand img { width: 3.25rem; height: auto; border-radius: 50%; }
+  .site .sheet__wordmark {
+    font-stretch: 80%; font-weight: 800;
+    text-transform: uppercase; font-size: 1.5rem; letter-spacing: 0.01em;
+  }
+  .site .sheet__list { display: grid; gap: 0.35rem; }
+  .site .sheet__list a {
+    display: block; text-decoration: none; padding: 0.5rem 0;
+    font-stretch: 80%; font-weight: 800;
+    text-transform: uppercase; font-size: 2rem; line-height: 1.1;
+  }
+  .site .sheet__list a:hover { color: var(--amber); }
+  .site .sheet__cta {
+    background: var(--amber); color: var(--ink); text-align: center;
+    padding: 1rem; text-decoration: none; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.875rem;
+    border-radius: 999px; margin-top: auto;
+  }
+  .site .sheet__social {
+    text-align: center; font-size: 0.75rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--on-ink-soft);
+  }
+
+  /* ---------- Section grounds ---------- */
+  .site .section { padding: clamp(3rem, 6vw, 5.5rem) 0; }
+  .site .section--ink { background: var(--ink); color: var(--on-ink); }
+  .site .section--cream-deep { background: var(--cream-deep); }
+
+  .site .btn {
+    display: inline-block; text-decoration: none;
+    font-size: 0.8125rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 0.95rem 1.6rem; border-radius: 999px;
+    transition: transform 0.12s ease, background-color 0.15s ease;
+  }
+  .site .btn:hover { transform: translateY(-1px); }
+  .site .btn--amber { background: var(--amber); color: var(--ink); }
+  .site .btn--amber:hover { background: var(--amber-deep); color: var(--on-ink); }
+  .site .btn--ink { background: var(--ink); color: var(--on-ink); }
+  .site .btn--ink:hover { background: var(--ink-2); }
+  .site .btn--ghost { border: 2px solid currentColor; }
+  .site .btn--ghost:hover { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+
+  .site .example-flag {
+    display: inline-block; font-size: 0.625rem; font-weight: 800;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    background: var(--amber); color: var(--ink);
+    padding: 0.2rem 0.5rem; border-radius: 3px; vertical-align: middle;
+  }
+
+  .site a[data-placeholder] { color: inherit; }
+
+  /* ---------- Supplied artwork ---------- */
+  /*
+   * `.art` is for artwork whose own paper already matches the section ground,
+   * so it needs no frame — it reads as drawn straight onto the page.
+   * `.plate` is for the two files whose cream differs, and for artwork sitting
+   * on ink or on the deeper cream: a mounted block painted with that file's
+   * own sampled colour.
+   */
+  .site .art, .site .plate img { display: block; width: 100%; height: auto; }
+  .site .plate { border: 2px solid var(--ink); }
+  .site .plate--bottle { background: var(--paper-bottle); }
+  .site .plate--disco { background: var(--paper-disco); }
+  .site .plate--roundel { background: var(--paper-roundel); }
+  .site .plate--stein { background: var(--paper-stein); }
+
+  /* ---------- Logo placeholder ---------- */
+  .site .topbar .logoslot, .site .sheet .logoslot, .site .foot .logoslot { color: var(--on-ink-soft); }
+  .site img.foot__logo { width: 5rem; height: auto; border-radius: 50%; }
+
+  /* ---------- Blank image slots ---------- */
+  .site .imgslot { background-color: var(--cream-deep); color: var(--ink-soft); }
+  .site .section--ink .imgslot,
+  .site .poster .imgslot { background-color: var(--ink-2); color: var(--on-ink-soft); }
+
+  /*
+   * Section heads, chips and the event-card grid live in the layout, not in
+   * the homepage: the event pages use all three, and a page's `is:global`
+   * styles only ship with that page. Defining them on the homepage alone left
+   * every event page's card list and status chips unstyled.
+   */
+  /* ---------- Section heads ---------- */
+  .site .sechead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem 1rem; margin-bottom: 2.25rem; }
+  .site .sechead .eyebrow { flex-basis: 100%; }
+
+  /* ---------- Chips ---------- */
+  .site .chip {
+    display: inline-block; font-size: 0.6875rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.12em;
+    padding: 0.38rem 0.75rem; border-radius: 999px;
+    border: 2px solid var(--ink); white-space: nowrap;
+  }
+  .site .chip--amber { background: var(--amber); border-color: var(--amber); }
+  .site .chip--open { background: var(--ink); color: var(--on-ink); }
+  .site .chip--waitlist { background: var(--amber); border-color: var(--amber); }
+  .site .chip--members-only { background: transparent; }
+
+  /* ---------- Cards ---------- */
+  .site .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; list-style: none; padding: 0; }
+  .site .card { display: flex; flex-direction: column; background: var(--cream-deep); border: 2px solid var(--ink); }
+  .site .card__media { position: relative; display: block; }
+  .site .card__date {
+    position: absolute; top: 0; left: 0;
+    display: grid; justify-items: center; line-height: 1;
+    background: var(--amber); color: var(--ink);
+    padding: 0.6rem 0.75rem; border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  }
+  .site .card__day { font-stretch: 80%; font-weight: 800; font-size: 1.5rem; }
+  .site .card__mon { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 0.15rem; }
+  .site .card__body { padding: 1.1rem 1.2rem 1.35rem; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
+  .site .card__title { font-size: 1.125rem; font-weight: 700; line-height: 1.25; }
+  .site .card__title a { text-decoration: none; }
+  .site .card__title a:hover { color: #7f6316; }
+  .site .card__summary { font-size: 0.875rem; color: var(--ink-soft); line-height: 1.55; }
+  .site .card__meta { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); }
+  .site .card .chip { align-self: flex-start; margin-top: auto; }
+
+
+  /* The card grid's own responsive steps travel with it. */
+  @media (max-width: 62rem) { .site .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 44rem) { .site .cards { grid-template-columns: 1fr; } }
+
+  /* ---------- Footer ---------- */
+  .site .foot { background: var(--ink); color: var(--on-ink); padding-top: 3.5rem; }
+  .site .foot__inner {
+    display: flex; flex-wrap: wrap; justify-content: space-between;
+    gap: 2.5rem; padding-bottom: 2.5rem;
+  }
+  .site .foot__brand { display: flex; align-items: center; gap: 1.25rem; }
+  .site .foot__mark {
+    font-stretch: 80%; font-weight: 800;
+    text-transform: uppercase; font-size: 2.75rem; line-height: 1;
+  }
+  .site .foot__tag {
+    font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.16em; color: var(--on-ink-soft); margin-top: 0.4rem;
+  }
+  .site .foot__cols { display: flex; gap: 3.5rem; }
+  .site .foot__head {
+    font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.16em; color: var(--amber); margin-bottom: 0.7rem;
+  }
+  .site .foot__cols ul { list-style: none; padding: 0; display: grid; gap: 0.4rem; }
+  .site .foot__cols a { text-decoration: none; font-size: 0.875rem; color: var(--on-ink-soft); }
+  .site .foot__cols a:hover { color: var(--on-ink); }
+  .site .foot__legal {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
+    border-top: 1px solid rgba(246, 239, 221, 0.14);
+    padding: 1.5rem 0 5.5rem;
+    font-size: 0.75rem; color: var(--on-ink-soft);
+  }
+  .site .foot__legal p { max-width: 58ch; line-height: 1.6; }
+  .site .foot__glyph { color: var(--amber); font-weight: 700; }
+
+  @media (max-width: 54rem) {
+    .site .topnav, .site .topbar__cta { display: none; }
+    .site .burger { display: flex; }
+  }
+</style>

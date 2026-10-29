@@ -1,0 +1,76 @@
+---
+/**
+ * One announcement. Only published announcements get a route.
+ */
+import { render } from 'astro:content';
+import Site from '../../layouts/Site.astro';
+import { getAnnouncements, text, type AnnouncementEntry } from '../../lib/content.ts';
+import { excerpt } from '../../lib/excerpt.ts';
+import { formatFullDate, machineDate } from '../../lib/datetime.ts';
+import { artwork } from '../../config/artwork.ts';
+import { url } from '../../lib/urls.ts';
+
+export async function getStaticPaths() {
+  const announcements = await getAnnouncements();
+  return announcements.map((announcement) => ({
+    params: { slug: announcement.id },
+    props: { announcement },
+  }));
+}
+
+interface Props { announcement: AnnouncementEntry }
+const { announcement } = Astro.props;
+const { title, date, image, imageAlt } = announcement.data;
+const { Content } = await render(announcement);
+const summary = excerpt(announcement.body, 160);
+---
+
+<Site
+  title={title}
+  section="/announcements/"
+  description={summary || `${title} — ${text.announcementsTitle}`}
+  type="article"
+  image={image && imageAlt ? { src: image, alt: imageAlt } : null}
+>
+  <section class="paper--roundel band--bottom pagehead">
+    <div class="shell pagehead__grid">
+      <div>
+        <nav class="crumb" aria-label="Breadcrumb">
+          <a href={url('/')}>Home</a>
+          <span aria-hidden="true">&rsaquo;</span>
+          <a href={url('/announcements/')}>{text.announcementsTitle}</a>
+        </nav>
+        <p class="eyebrow">
+          <time datetime={machineDate(date)}>{formatFullDate(date)}</time>
+        </p>
+        <h1 class="display pagehead__title">{title}</h1>
+      </div>
+      <!-- The roundel's cream is this band's ground, so it has no edge. -->
+      <img
+        class="art pagehead__art"
+        src={url(artwork.pintRoundel.src)} alt={artwork.pintRoundel.alt}
+        width={artwork.pintRoundel.width} height={artwork.pintRoundel.height}
+        loading="lazy" decoding="async"
+      />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      {image && imageAlt && (
+        <figure class="post__photo">
+          <img src={url(image)} alt={imageAlt} loading="lazy" decoding="async" />
+        </figure>
+      )}
+      <div class="prose"><Content /></div>
+      <p class="undernote">
+        <a href={url('/announcements/')}>&larr; {text.backToAnnouncements}</a>
+      </p>
+    </div>
+  </section>
+</Site>
+
+<style is:global>
+  .site .post__photo { max-width: 46rem; margin-bottom: 2rem; }
+  .site .post__photo img { width: 100%; height: auto; border: 2px solid var(--ink); }
+</style>

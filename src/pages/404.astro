@@ -1,0 +1,64 @@
+---
+/**
+ * 404.
+ *
+ * Useful rather than decorative: it says what happened, offers every section
+ * of the site, and lists what is on next, which is what most people who hit a
+ * dead link are after. It is a static page like any other, so it works under a
+ * project path as well as at a domain root.
+ */
+import Site from '../layouts/Site.astro';
+import EventRow from '../components/EventRow.astro';
+import { getGroupedEvents, settings, text } from '../lib/content.ts';
+import { artwork } from '../config/artwork.ts';
+import { url } from '../lib/urls.ts';
+
+const { upcoming } = await getGroupedEvents();
+const next = upcoming.slice(0, 3);
+---
+
+<Site title={text.notFoundHeading} description={text.notFoundBody}>
+  <section class="pagehead">
+    <div class="shell pagehead__grid">
+      <div>
+        <p class="eyebrow">404</p>
+        <h1 class="display pagehead__title">{text.notFoundHeading}</h1>
+        <p class="pagehead__lead">{text.notFoundBody}</p>
+        <ul class="lost">
+          {settings.nav.map((item) => (
+            <li><a class="btn btn--ghost" href={url(item.href)}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <img
+        class="art pagehead__art"
+        src={url(artwork.disco.src)} alt={artwork.disco.alt}
+        width={artwork.disco.width} height={artwork.disco.height}
+        loading="lazy" decoding="async"
+      />
+    </div>
+  </section>
+
+  {next.length > 0 && (
+    <section class="section section--tight">
+      <div class="shell">
+        <div class="sechead">
+          <h2 class="display">{text.upcomingHeading}</h2>
+          <a class="sechead__link" href={url('/events/')}>{text.backToEvents} &rarr;</a>
+        </div>
+        <ul class="rows rows--next" data-events="upcoming">
+          {next.map((event) => <EventRow event={event} compact />)}
+        </ul>
+      </div>
+    </section>
+  )}
+</Site>
+
+<script>
+  import { regroupEvents } from '../lib/regroup.ts';
+  regroupEvents();
+</script>
+
+<style is:global>
+  .site .lost { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 1.75rem; }
+</style>

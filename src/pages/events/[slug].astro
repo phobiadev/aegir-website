@@ -1,0 +1,208 @@
+---
+/**
+ * One event.
+ *
+ * Every essential fact — date, time, location, price, booking — is page text
+ * in the details panel as well as being on any poster image, so the event is
+ * fully readable if the picture never loads or is never supplied.
+ *
+ * Only published events get a route. A draft has no page at all.
+ */
+import { render } from 'astro:content';
+import Site from '../../layouts/Site.astro';
+import EventRow from '../../components/EventRow.astro';
+import { getEvents, getGroupedEvents, eventCutoff, text, type EventEntry } from '../../lib/content.ts';
+import { formatWhen, formatDate, formatTimeRange, machineDate } from '../../lib/datetime.ts';
+import { artwork } from '../../config/artwork.ts';
+import { url } from '../../lib/urls.ts';
+
+export async function getStaticPaths() {
+  const events = await getEvents();
+  return events.map((event) => ({ params: { slug: event.id }, props: { event } }));
+}
+
+interface Props { event: EventEntry }
+const { event } = Astro.props;
+const { title, start, end, location, description, price, image, imageAlt, bookingUrl, bookingLabel, cancelled, cancellationNote } = event.data;
+const { Content } = await render(event);
+
+const { upcoming, past } = await getGroupedEvents();
+const isPast = eventCutoff(event) <= new Date();
+const others = [...upcoming, ...past].filter((other) => other.id !== event.id).slice(0, 3);
+const time = formatTimeRange(start, end);
+---
+
+<Site
+  title={title}
+  section="/events/"
+  description={description}
+  type="article"
+  image={image && imageAlt ? { src: image, alt: imageAlt } : null}
+>
+  <!-- The band is painted with the stein illustration's own cream, so the
+       figure stands on it with no frame and no edge. -->
+  <section class="paper--stein band--bottom head">
+    <div class="shell">
+      <nav class="crumb" aria-label="Breadcrumb">
+        <a href={url('/')}>Home</a>
+        <span aria-hidden="true">&rsaquo;</span>
+        <a href={url('/events/')}>{text.eventsTitle}</a>
+      </nav>
+      <div class="head__grid">
+        <div class="head__text">
+          <p class="head__chips">
+            <span class="chip chip--date">
+              <time datetime={machineDate(start)}>{formatDate(start)}</time>
+            </span>
+            {cancelled && <span class="chip chip--cancelled">{text.cancelledLabel}</span>}
+            {!cancelled && isPast && <span class="chip chip--past">{text.pastLabel}</span>}
+          </p>
+          <h1 class="display head__title">{title}</h1>
+          <p class="head__summary">{description}</p>
+          <p class="head__when">{formatWhen(start, end)} &middot; {location}</p>
+        </div>
+        <img
+          class="art head__diver"
+          src={url(artwork.steinDive.src)} alt={artwork.steinDive.alt}
+          width={artwork.steinDive.width} height={artwork.steinDive.height}
+          fetchpriority="high" decoding="async"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell detail">
+      <div class="detail__body">
+        {cancelled && (
+          <p class="notice">
+            <strong>{text.cancelledLabel}.</strong>{' '}
+            {cancellationNote ?? text.cancelledFallbackNote}
+          </p>
+        )}
+
+        {image && imageAlt && (
+          <figure class="detail__photo">
+            <img src={url(image)} alt={imageAlt} loading="lazy" decoding="async" />
+          </figure>
+        )}
+
+        <div class="prose"><Content /></div>
+      </div>
+
+      <aside class="detail__side">
+        <div class="box">
+          <h2 class="box__head">{text.detailsHeading}</h2>
+          <dl class="box__facts">
+            <div>
+              <dt>{text.dateLabel}</dt>
+              <dd><time datetime={machineDate(start)}>{formatDate(start)}</time></dd>
+            </div>
+            {time && <div><dt>{text.timeLabel}</dt><dd>{time}</dd></div>}
+            <div><dt>{text.locationLabel}</dt><dd>{location}</dd></div>
+            {price && <div><dt>{text.priceLabel}</dt><dd>{price}</dd></div>}
+          </dl>
+
+          {bookingUrl && !cancelled && (
+            <a class="btn btn--amber box__btn" href={bookingUrl} rel="noopener">
+              {bookingLabel ?? text.bookingCta}
+            </a>
+          )}
+          <a class="box__alt" href={url('/events/')}>{text.backToEvents} &rarr;</a>
+        </div>
+
+        <!-- The roundel sits on a block of its own cream, so it needs no border. -->
+        <div class="paper--roundel sidemark">
+          <img
+            class="art"
+            src={url(artwork.pintRoundel.src)} alt={artwork.pintRoundel.alt}
+            width={artwork.pintRoundel.width} height={artwork.pintRoundel.height}
+            loading="lazy" decoding="async"
+          />
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- More events, with the disco figure alongside on its own cream. -->
+  {others.length > 0 && (
+    <section class="paper--disco band--top band--bottom section more">
+      <div class="shell more__grid">
+        <div>
+          <div class="sechead">
+            <h2 class="display">{text.moreEventsHeading}</h2>
+            <a class="sechead__link" href={url('/events/')}>{text.backToEvents} &rarr;</a>
+          </div>
+          <ul class="rows">
+            {others.map((other) => <EventRow event={other} compact />)}
+          </ul>
+        </div>
+        <img
+          class="art more__dancer"
+          src={url(artwork.disco.src)} alt={artwork.disco.alt}
+          width={artwork.disco.width} height={artwork.disco.height}
+          loading="lazy" decoding="async"
+        />
+      </div>
+    </section>
+  )}
+</Site>
+
+<style is:global>
+  /* ---------- Header band ---------- */
+  .site .head { padding: clamp(1.75rem, 4vw, 3rem) 0 0; }
+  .site .head__grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    gap: clamp(1.5rem, 4vw, 3.5rem); align-items: end;
+  }
+  .site .head__text { padding-bottom: clamp(2rem, 4vw, 3.5rem); }
+  .site .head__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+  .site .head__title { font-size: clamp(2rem, 1.2rem + 3.4vw, 3.5rem); max-width: 18ch; margin-bottom: 1rem; }
+  .site .head__summary { font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.1875rem); color: var(--ink-soft); max-width: 50ch; line-height: 1.55; }
+  .site .head__when {
+    margin-top: 1.25rem; padding-top: 1rem; border-top: 2px solid var(--ink);
+    font-size: 0.8125rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; max-width: 50ch; line-height: 1.5;
+  }
+  /*
+   * The diver is the largest thing in the header and stands on the amber rule
+   * at the foot of the band. `width: auto` with a height cap keeps it from
+   * dominating a short window, and it is aligned to the shell's right edge.
+   */
+  .site .head__diver { width: auto; height: min(54vh, 26rem); justify-self: end; align-self: end; }
+
+  /* ---------- Body ---------- */
+  .site .detail { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: clamp(2rem, 5vw, 3.5rem); align-items: start; }
+  .site .detail__photo { margin-bottom: 1.75rem; }
+  .site .detail__photo img { width: 100%; height: auto; border: 2px solid var(--ink); }
+  .site .notice { border: 2px solid var(--ink); border-left-width: 6px; border-left-color: var(--amber); background: var(--shade); padding: 1rem 1.15rem; margin-bottom: 1.75rem; line-height: 1.6; max-width: 62ch; }
+
+  .site .box { border: 2px solid var(--ink); border-top-width: 6px; border-top-color: var(--amber); padding: 1.35rem; background: var(--shade); }
+  .site .box__head { font-size: 0.6875rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.14em; color: var(--amber-text); margin-bottom: 1rem; }
+  .site .box__facts > div { padding: 0.55rem 0; border-bottom: 1px solid rgba(23,21,15,0.16); }
+  .site .box__facts dt { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-faint); margin-bottom: 0.2rem; }
+  .site .box__facts dd { font-size: 0.9375rem; font-weight: 600; line-height: 1.45; }
+  .site .box__btn { display: block; text-align: center; margin-top: 1.25rem; }
+  .site .box__alt { display: block; text-align: center; margin-top: 0.8rem; font-size: 0.8125rem; font-weight: 600; color: var(--ink-soft); }
+
+  .site .sidemark { margin-top: 1.75rem; padding: 0.75rem 0; }
+
+  /* ---------- More events ---------- */
+  .site .more__grid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: clamp(2rem, 5vw, 3.5rem); align-items: center; }
+  .site .more__dancer { width: 100%; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 62rem) {
+    .site .head__diver { height: min(38vh, 17rem); }
+    .site .detail { grid-template-columns: 1fr; }
+    .site .sidemark { max-width: 10rem; }
+    .site .more__grid { grid-template-columns: 1fr; }
+    .site .more__dancer { max-width: 12rem; }
+  }
+  @media (max-width: 44rem) {
+    /* The title has to come first on a phone, so the diver drops below it. */
+    .site .head__grid { grid-template-columns: 1fr; }
+    .site .head__text { padding-bottom: 1.25rem; }
+    .site .head__diver { height: auto; width: 9rem; justify-self: end; }
+  }
+</style>

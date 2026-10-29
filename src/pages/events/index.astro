@@ -1,0 +1,76 @@
+---
+/**
+ * Events — everything upcoming, then everything past.
+ *
+ * Both lists are plain static HTML, grouped at build time. The small script at
+ * the foot re-makes the split in the browser from each row's cutoff, so a page
+ * served from a cache does not quietly go stale. With JavaScript off, the
+ * listing is exactly as built — readable, linkable and complete.
+ */
+import Site from '../../layouts/Site.astro';
+import EventRow from '../../components/EventRow.astro';
+import MailingListButton from '../../components/MailingListButton.astro';
+import { getGroupedEvents, text } from '../../lib/content.ts';
+import { artwork } from '../../config/artwork.ts';
+import { url } from '../../lib/urls.ts';
+
+const { upcoming, past } = await getGroupedEvents();
+---
+
+<Site title={text.eventsTitle} section="/events/" description={text.eventsLead}>
+  <section class="paper--stein band--bottom pagehead">
+    <div class="shell pagehead__grid">
+      <div>
+        <p class="eyebrow">{text.eventsEyebrow}</p>
+        <h1 class="display pagehead__title">{text.eventsTitle}</h1>
+        <p class="pagehead__lead">{text.eventsLead}</p>
+      </div>
+      <img
+        class="art pagehead__art"
+        src={url(artwork.steinDive.src)} alt={artwork.steinDive.alt}
+        width={artwork.steinDive.width} height={artwork.steinDive.height}
+        fetchpriority="high" decoding="async"
+      />
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="shell">
+      <div class="sechead">
+        <h2 class="display">{text.upcomingHeading}</h2>
+      </div>
+
+      <ul class="rows rows--next" data-events="upcoming" hidden={upcoming.length === 0}>
+        {upcoming.map((event) => <EventRow event={event} />)}
+      </ul>
+
+      <div class="empty" data-empty="upcoming" hidden={upcoming.length > 0}>
+        <p>{text.noUpcomingEvents}</p>
+        <MailingListButton class="btn btn--amber" note />
+      </div>
+
+      <p class="timenote">{text.timezoneNote}</p>
+    </div>
+  </section>
+
+  <section class="section section--shade">
+    <div class="shell">
+      <div class="sechead">
+        <h2 class="display">{text.pastHeading}</h2>
+      </div>
+
+      <ul class="rows" data-events="past" hidden={past.length === 0}>
+        {past.map((event) => <EventRow event={event} />)}
+      </ul>
+
+      <div class="empty" data-empty="past" hidden={past.length > 0}>
+        <p>{text.noPastEvents}</p>
+      </div>
+    </div>
+  </section>
+</Site>
+
+<script>
+  import { regroupEvents } from '../../lib/regroup.ts';
+  regroupEvents();
+</script>

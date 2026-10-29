@@ -1,19 +1,175 @@
 ---
 /**
- * Stage 1 has no society-facing root page yet — the real site is built after a
- * direction is chosen. Anyone landing on `/` is sent to the comparison page.
+ * Home — introduction, what is on next, recent announcements, the mailing list.
+ *
+ * The upcoming list carries EVERY published upcoming event, and CSS shows the
+ * first three. That is what keeps "next up" right as time passes: when the
+ * regrouping script drops an event that has finished, the next one moves into
+ * its place with no rebuild. See `src/lib/regroup.ts`.
  */
+import Site from '../layouts/Site.astro';
+import EventRow from '../components/EventRow.astro';
+import AnnouncementCard from '../components/AnnouncementCard.astro';
+import MailingListButton from '../components/MailingListButton.astro';
+import { getGroupedEvents, getAnnouncements, settings, home, text } from '../lib/content.ts';
+import { excerpt } from '../lib/excerpt.ts';
+import { artwork } from '../config/artwork.ts';
+import { url } from '../lib/urls.ts';
+
+const { upcoming } = await getGroupedEvents();
+const announcements = (await getAnnouncements()).slice(0, 3);
 ---
-<html lang="en-GB">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="refresh" content="0; url=/design-review/" />
-    <link rel="canonical" href="/design-review/" />
-    <title>Aegir — design review</title>
-    <meta name="robots" content="noindex, nofollow" />
-  </head>
-  <body style="font-family: ui-sans-serif, system-ui, sans-serif; padding: 3rem; line-height: 1.6;">
-    <p>Redirecting to the <a href="/design-review/">design review</a>&hellip;</p>
-  </body>
-</html>
+
+<Site title="Home" section="/" description={settings.description}>
+  <!-- Hero: type on the left, bottle-walk illustration on the right. The whole
+       band is painted with that illustration's own paper colour. -->
+  <section class="hero">
+    <div class="shell hero__grid">
+      <div>
+        <p class="eyebrow">{home.eyebrow}</p>
+        <h1 class="display hero__head">{home.heading}</h1>
+        <p class="hero__lede">{home.lead}</p>
+        <p class="hero__body">{home.body}</p>
+        <div class="hero__actions">
+          <a href={url('/events/')} class="btn btn--amber">{home.primaryCta}</a>
+          <MailingListButton class="btn btn--ghost" label={home.secondaryCta} />
+        </div>
+      </div>
+      <img
+        class="art hero__art"
+        src={url(artwork.bottleWalk.src)} alt={artwork.bottleWalk.alt}
+        width={artwork.bottleWalk.width} height={artwork.bottleWalk.height}
+        fetchpriority="high" decoding="async"
+      />
+    </div>
+  </section>
+
+  <!-- Next up. Every upcoming event is in the list; CSS shows three. -->
+  <section class="section" id="events">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">{home.eventsEyebrow}</p>
+        <h2 class="display">{home.eventsHeading}</h2>
+        <a class="sechead__link" href={url('/events/')}>{home.eventsLink} &rarr;</a>
+      </div>
+
+      <ul class="rows rows--next rows--capped" data-events="upcoming" hidden={upcoming.length === 0}>
+        {upcoming.map((event) => <EventRow event={event} />)}
+      </ul>
+
+      <div class="empty" data-empty="upcoming" hidden={upcoming.length > 0}>
+        <p>{text.noUpcomingEvents}</p>
+        <MailingListButton class="btn btn--amber" />
+      </div>
+
+      <p class="timenote">{text.timezoneNote}</p>
+    </div>
+  </section>
+
+  <!-- Announcements -->
+  <section class="section section--shade">
+    <div class="shell">
+      <div class="sechead">
+        <p class="eyebrow">{home.announcementsEyebrow}</p>
+        <h2 class="display">{home.announcementsHeading}</h2>
+        <a class="sechead__link" href={url('/announcements/')}>{home.announcementsLink} &rarr;</a>
+      </div>
+      {announcements.length > 0 ? (
+        <ul class="notes">
+          {announcements.map((announcement) => (
+            <AnnouncementCard announcement={announcement} summary={excerpt(announcement.body)} />
+          ))}
+        </ul>
+      ) : (
+        <div class="empty"><p>{text.noAnnouncements}</p></div>
+      )}
+    </div>
+  </section>
+
+  <!-- About, with the disco figure. It shares the page's cream exactly, so it
+       needs no ground of its own. -->
+  <section class="section">
+    <div class="shell about">
+      <div>
+        <p class="eyebrow">{home.aboutEyebrow}</p>
+        <h2 class="display">{home.aboutHeading}</h2>
+        <p class="about__lede">{home.aboutBody}</p>
+        <a class="btn btn--ghost" href={url('/about/')}>{home.aboutLink}</a>
+      </div>
+      <img
+        class="art about__art"
+        src={url(artwork.disco.src)} alt={artwork.disco.alt}
+        width={artwork.disco.width} height={artwork.disco.height}
+        loading="lazy" decoding="async"
+      />
+    </div>
+  </section>
+
+  <!-- Mailing list. The band is painted with the roundel's own cream, so the
+       drawing sits on it with no edge; the dark inversion is in the card. -->
+  <section id="mailing" class="paper--roundel band--top mailband">
+    <div class="shell mailband__inner">
+      <img
+        class="art mailband__badge"
+        src={url(artwork.pintRoundel.src)} alt={artwork.pintRoundel.alt}
+        width={artwork.pintRoundel.width} height={artwork.pintRoundel.height}
+        loading="lazy" decoding="async"
+      />
+      <div class="mailcard">
+        <h2 class="display mailband__head">{settings.mailingList.heading}</h2>
+        <p class="mailband__body">{settings.mailingList.body}</p>
+        <MailingListButton class="btn btn--amber" note />
+      </div>
+    </div>
+  </section>
+</Site>
+
+<script>
+  import { regroupEvents } from '../lib/regroup.ts';
+  regroupEvents();
+</script>
+
+<style is:global>
+  /* Hero band is painted with the bottle-walk illustration's own paper. */
+  .site .hero { background: var(--paper); padding: clamp(2.5rem, 5vw, 4.5rem) 0 clamp(2rem, 4vw, 3.5rem); }
+  .site .hero__grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+  .site .hero__head { font-size: clamp(2.25rem, 1.3rem + 3.8vw, 4rem); max-width: 16ch; margin: 0.9rem 0 1.1rem; }
+  .site .hero__lede { font-size: clamp(1.0625rem, 1rem + 0.45vw, 1.25rem); line-height: 1.55; max-width: 44ch; margin-bottom: 0.9rem; }
+  .site .hero__body { color: var(--ink-soft); max-width: 46ch; line-height: 1.65; }
+  .site .hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.75rem; }
+  .site .hero__art { width: 100%; height: auto; max-width: 26rem; margin-inline-start: auto; }
+
+  /*
+   * Only the next three events are shown, counted in CSS rather than sliced in
+   * the template — so when the regrouping script removes a finished event, the
+   * fourth becomes the third and the homepage is right again without a build.
+   */
+  .site .rows--capped > li:nth-child(n + 4) { display: none; }
+
+  /* ---------- About teaser ---------- */
+  .site .about { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+  .site .about__lede { font-size: 1.125rem; line-height: 1.6; margin: 1rem 0 1.75rem; max-width: 50ch; }
+  .site .about__art { width: 100%; }
+
+  /* ---------- Mailing ---------- */
+  .site .mailband { padding: clamp(2.5rem, 5vw, 4rem) 0; }
+  .site .mailband__inner { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+  .site .mailcard { background: var(--ink); color: var(--on-ink); padding: clamp(1.5rem, 3vw, 2.25rem); border-left: 6px solid var(--amber); }
+  .site .mailband__badge { width: 100%; }
+  .site .mailband__head { font-size: clamp(1.875rem, 1.3rem + 2.2vw, 2.75rem); margin-bottom: 0.65rem; }
+  .site .mailband__body { max-width: 48ch; line-height: 1.65; color: var(--on-ink-soft); margin-bottom: 1.5rem; }
+  .site .mailband .btn--amber { border-color: var(--amber); }
+  .site .mailband a.btn--amber:hover { background: var(--on-ink); color: var(--ink); border-color: var(--on-ink); }
+  .site .mailband .inactive-note { color: var(--on-ink-soft); }
+
+  @media (max-width: 62rem) {
+    .site .hero__grid { grid-template-columns: 1fr; }
+    .site .hero__art { order: -1; max-width: 15rem; margin-inline: auto; }
+    .site .about { grid-template-columns: 1fr; }
+    .site .about__art { max-width: 11rem; }
+  }
+  @media (max-width: 44rem) {
+    .site .mailband__inner { grid-template-columns: 1fr; }
+    .site .mailband__badge { max-width: 8rem; }
+  }
+</style>

@@ -1,0 +1,420 @@
+---
+/**
+ * The site layout. Head, header, mobile menu, footer and every shared style.
+ *
+ * This is the design chosen in review — it was "B5" during the exploration: a
+ * cream ground with mixed-case bold display type, a sticky bar, ticket-row
+ * events, and a hero carrying the bottle-walk illustration at full size.
+ *
+ * Its defining idea is how the artwork is set. Illustrations are never framed:
+ * each sits on a ground painted with that file's own sampled cream, so it has
+ * no visible edge at all. Where the page cream is not already the right one,
+ * the section gets a `paper--*` class and the join between the two creams is
+ * marked with a 2px amber rule. See `docs/PROJECT.md` §6.
+ *
+ * Wording comes from `content/settings/site.json`, never from this file.
+ * Internal links go through `url()` so the same build works under a GitHub
+ * Pages project path and at a custom-domain root.
+ *
+ * NOTE: anything used by more than one page belongs in this file. A page's own
+ * `<style is:global>` ships with that page only, so a shared rule defined in a
+ * page silently does nothing everywhere else.
+ */
+import '../styles/reset.css';
+import '@fontsource-variable/archivo/wdth.css';
+import { settings } from '../lib/content.ts';
+import { artwork } from '../config/artwork.ts';
+import { url, absoluteUrl } from '../lib/urls.ts';
+import LogoSlot from '../components/LogoSlot.astro';
+import MailingListButton from '../components/MailingListButton.astro';
+
+interface Props {
+  /** Page title, without the society name. */
+  title: string;
+  /** Meta description. Falls back to the society's default. */
+  description?: string;
+  /** Which nav item is current, matched against its href. */
+  section?: string;
+  /** Open Graph type — 'article' for a single event or announcement. */
+  type?: 'website' | 'article';
+  /** Page-specific sharing image, e.g. an event poster. */
+  image?: { src: string; alt: string } | null;
+}
+const {
+  title,
+  description = settings.description,
+  section = '/',
+  type = 'website',
+  image = null,
+} = Astro.props;
+
+const { branding, mailingList, contact, nav, status } = settings;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+const share = image ?? branding.shareImage;
+const shareUrl = share ? absoluteUrl(share.src, Astro.site) : null;
+const fullTitle = `${title} · ${settings.name}`;
+
+/**
+ * Each illustration's own sampled background colour, emitted once.
+ *
+ * (`define:vars` is deliberately avoided here: combined with `is:global` it
+ * stamps the custom properties onto every element in the page.)
+ */
+const paperVars = `.site {
+  --paper-bottle: ${artwork.bottleWalk.paper};
+  --paper-disco: ${artwork.disco.paper};
+  --paper-roundel: ${artwork.pintRoundel.paper};
+  --paper-stein: ${artwork.steinDive.paper};
+}`;
+---
+
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+
+    <link rel="icon" href={url('/favicon.ico')} sizes="48x48" />
+    <link rel="icon" href={url('/favicon-32.png')} type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href={url('/apple-touch-icon.png')} />
+
+    <meta property="og:site_name" content={settings.name} />
+    <meta property="og:type" content={type} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en_GB" />
+    {shareUrl && <meta property="og:image" content={shareUrl} />}
+    {shareUrl && share && <meta property="og:image:alt" content={share.alt} />}
+    <meta name="twitter:card" content={shareUrl ? 'summary_large_image' : 'summary'} />
+
+    <!--
+      `status.noindex` is deliberate while the site carries placeholder copy and
+      the mailing-list button is inactive. Set it to false in
+      content/settings/site.json at launch — see docs/PROJECT.md §9.
+    -->
+    {status.noindex && <meta name="robots" content="noindex, nofollow" />}
+    <style is:global set:html={paperVars}></style>
+  </head>
+  <body class="site">
+    <a href="#main" class="skip">Skip to content</a>
+
+    <header class="bar">
+      <div class="shell bar__inner">
+        <a href={url('/')} class="bar__brand">
+          {branding.logo
+            ? <img class="bar__logo" src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width} height={branding.logo.height} />
+            : <LogoSlot size="2.375rem" label="Logo" class="bar__logo" />}
+          <span class="bar__wordmark">{branding.wordmark}</span>
+        </a>
+        <nav class="bar__nav" aria-label="Primary">
+          <ul>
+            {nav.map((item) => (
+              <li>
+                <a href={url(item.href)} aria-current={section === item.href ? 'page' : undefined}>{item.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <MailingListButton class="bar__cta" label={mailingList.cta} />
+        <button class="burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Open menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </header>
+
+    <div class="sheet" id="menu" hidden>
+      <div class="sheet__inner">
+        <button class="sheet__close" type="button" aria-label="Close menu">&times;</button>
+        <div class="sheet__brand">
+          {branding.logo
+            ? <img src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width} height={branding.logo.height} />
+            : <LogoSlot size="3.25rem" label="Logo" />}
+          <span class="sheet__wordmark">{branding.wordmark}</span>
+        </div>
+        <nav aria-label="Mobile">
+          <ul class="sheet__list">
+            {nav.map((item) => <li><a href={url(item.href)}>{item.label}</a></li>)}
+          </ul>
+        </nav>
+        <MailingListButton class="sheet__cta" />
+      </div>
+    </div>
+
+    <main id="main"><slot /></main>
+
+    <footer class="foot">
+      <div class="shell foot__inner">
+        <div class="foot__brand">
+          {branding.logo
+            ? <img class="foot__logo" src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width} height={branding.logo.height} />
+            : <LogoSlot size="4.5rem" label="Logo" class="foot__logo" />}
+          <div>
+            <p class="foot__mark">{settings.name}</p>
+            <p class="foot__tag">{settings.tagline}</p>
+          </div>
+        </div>
+
+        <div class="foot__cols">
+          <nav class="foot__nav" aria-label="Footer">
+            <ul>
+              {nav.map((item) => <li><a href={url(item.href)}>{item.label}</a></li>)}
+            </ul>
+          </nav>
+
+          <div class="foot__contact">
+            <ul>
+              {contact.links.map((link) => (
+                <li><a href={link.url} rel="noopener">{link.handle ?? link.label}</a></li>
+              ))}
+              {contact.email && <li><a href={`mailto:${contact.email}`}>{contact.email}</a></li>}
+            </ul>
+          </div>
+
+          <div class="foot__join">
+            <MailingListButton class="btn btn--ink" />
+          </div>
+        </div>
+
+        {status.placeholderContent && <p class="foot__note">{status.placeholderNote}</p>}
+        {!mailingList.url && <p class="foot__note">{mailingList.unavailableNote}</p>}
+      </div>
+    </footer>
+
+    <script>
+      const burger = document.querySelector<HTMLButtonElement>('.burger');
+      const sheet = document.querySelector<HTMLElement>('.sheet');
+      const close = document.querySelector<HTMLButtonElement>('.sheet__close');
+      function setOpen(open: boolean) {
+        if (!sheet || !burger) return;
+        sheet.hidden = !open;
+        burger.setAttribute('aria-expanded', String(open));
+        document.body.style.overflow = open ? 'hidden' : '';
+        if (open) close?.focus(); else burger.focus();
+      }
+      burger?.addEventListener('click', () => setOpen(sheet?.hidden ?? true));
+      close?.addEventListener('click', () => setOpen(false));
+      sheet?.addEventListener('click', (e) => { if (e.target === sheet) setOpen(false); });
+      sheet?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sheet && !sheet.hidden) setOpen(false);
+      });
+    </script>
+  </body>
+</html>
+
+<style is:global>
+  .site {
+    /* Grounds are the sampled paper colours of the supplied artwork. */
+    --paper: var(--paper-bottle);
+    --shade: #F2E7CF;
+    --ink: #17150f;
+    --ink-soft: #554e3e;
+    --ink-faint: #6e675a;
+    --amber: #f0bc2e;
+    --amber-text: #7f6316;  /* clears 4.5:1 on the page cream, --shade and both artwork papers */
+    --on-ink: #f6efdd;
+    --on-ink-soft: #ddd4bd;
+    --sans: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-stretch: 100%;
+    font-size: clamp(1rem, 0.96rem + 0.2vw, 1.0625rem);
+  }
+
+  .site .shell { width: min(100% - 2.5rem, 72rem); margin-inline: auto; }
+  .site .skip { position: absolute; left: -9999px; background: var(--ink); color: var(--paper); padding: 0.75rem 1.25rem; z-index: 10000; }
+  .site .skip:focus { left: 1rem; top: 1rem; }
+
+  /* Display: normal width, mixed case, very bold — the opposite of B's caps. */
+  .site .display { font-weight: 800; letter-spacing: -0.025em; line-height: 1.02; }
+  .site h2.display { font-size: clamp(1.875rem, 1.3rem + 2.4vw, 3rem); }
+  .site .eyebrow { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--amber-text); }
+
+  /* ---------- Bar ---------- */
+  .site .bar { position: sticky; top: 0; z-index: 100; background: var(--paper); border-bottom: 2px solid var(--ink); }
+  .site .bar__inner { display: flex; align-items: center; gap: 1.5rem; min-height: 4rem; }
+  .site .bar__brand { display: flex; align-items: center; gap: 0.7rem; text-decoration: none; margin-inline-end: auto; }
+  .site .bar__wordmark { font-weight: 800; font-size: 1.625rem; letter-spacing: -0.03em; }
+  .site .bar__nav ul { display: flex; gap: 1.75rem; }
+  .site .bar__nav a { text-decoration: none; font-size: 0.875rem; font-weight: 600; padding: 0.35rem 0; border-bottom: 2px solid transparent; }
+  .site .bar__nav a:hover, .site .bar__nav a[aria-current='page'] { border-bottom-color: var(--amber); }
+  .site .bar__cta { background: var(--amber); color: var(--ink); padding: 0.55rem 1.1rem; border-radius: 999px; text-decoration: none; font-size: 0.8125rem; font-weight: 700; border: 2px solid var(--ink); white-space: nowrap; }
+  .site a.bar__cta:hover { background: var(--ink); color: var(--paper); }
+  .site .burger { display: none; background: none; border: 0; cursor: pointer; padding: 0.5rem; flex-direction: column; gap: 4px; }
+  .site .burger span { display: block; width: 22px; height: 2px; background: var(--ink); }
+
+  .site .sheet { position: fixed; inset: 0; z-index: 200; background: var(--paper); }
+  .site .sheet[hidden] { display: none; }
+  .site .sheet__inner { display: flex; flex-direction: column; gap: 2rem; padding: 5rem 2rem 2rem; height: 100%; }
+  .site .sheet__close { position: absolute; top: 1rem; right: 1.4rem; background: none; border: 0; font-size: 2.5rem; line-height: 1; cursor: pointer; color: var(--ink); }
+  .site .sheet__brand { display: flex; align-items: center; gap: 0.85rem; }
+  .site .sheet__brand img { width: 3.25rem; height: auto; border-radius: 50%; }
+  .site .sheet__wordmark { font-weight: 800; font-size: 1.625rem; letter-spacing: -0.03em; }
+  .site .sheet__list { display: grid; gap: 0.25rem; }
+  .site .sheet__list a { display: block; text-decoration: none; padding: 0.5rem 0; font-weight: 800; font-size: 2rem; letter-spacing: -0.03em; }
+  .site .sheet__list a:hover { color: var(--amber-text); }
+  .site .sheet__cta { margin-top: auto; background: var(--amber); border: 2px solid var(--ink); color: var(--ink); text-align: center; padding: 1rem; text-decoration: none; font-weight: 700; border-radius: 999px; width: 100%; }
+
+  /* ---------- Sections ---------- */
+  .site .section { padding: clamp(3rem, 6vw, 5rem) 0; }
+  .site .section--shade { background: var(--shade); }
+  .site .section--tight { padding-block: clamp(2rem, 4vw, 3rem); }
+
+  .site .sechead { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.4rem 1rem; margin-bottom: 2rem; }
+  .site .sechead .eyebrow { flex-basis: 100%; }
+  .site .sechead__link { margin-inline-start: auto; font-size: 0.875rem; font-weight: 700; }
+
+  .site .btn { display: inline-block; text-decoration: none; font-size: 0.875rem; font-weight: 700; padding: 0.85rem 1.5rem; border-radius: 999px; border: 2px solid var(--ink); transition: background-color 0.15s ease, color 0.15s ease; }
+  .site .btn--amber { background: var(--amber); color: var(--ink); }
+  .site a.btn--amber:hover { background: var(--ink); color: var(--paper); }
+  .site .btn--ink { background: var(--ink); color: var(--paper); }
+  .site a.btn--ink:hover { background: transparent; color: var(--ink); }
+  .site .btn--ghost { background: transparent; color: var(--ink); }
+  .site a.btn--ghost:hover { background: var(--ink); color: var(--paper); }
+
+  .site .chip { display: inline-block; font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.3rem 0.65rem; border-radius: 999px; border: 2px solid var(--ink); white-space: nowrap; }
+  .site .chip--date { background: var(--amber); }
+  .site .chip--cancelled { background: var(--ink); color: var(--paper); }
+  .site .chip--past { background: transparent; }
+
+  /* ---------- Page headers ---------- */
+  .site .pagehead { padding: clamp(2rem, 5vw, 3.5rem) 0 clamp(1.5rem, 4vw, 2.5rem); }
+  .site .pagehead__grid { display: grid; grid-template-columns: minmax(0, 1fr) 13rem; gap: clamp(1.5rem, 4vw, 3.5rem); align-items: center; }
+  .site .pagehead__title { font-size: clamp(2.25rem, 1.4rem + 3.4vw, 3.5rem); margin: 0.75rem 0 1rem; max-width: 18ch; }
+  .site .pagehead__lead { font-size: clamp(1.0625rem, 1rem + 0.45vw, 1.1875rem); line-height: 1.6; max-width: 54ch; color: var(--ink-soft); }
+  .site .pagehead__art { width: 100%; }
+
+  .site .crumb {
+    display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem;
+    font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--ink-faint);
+  }
+  .site .crumb a { text-decoration: none; }
+  .site .crumb a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ---------- Event rows ---------- */
+  /*
+   * These live in the layout, not in a page, because the homepage, the events
+   * list and the event page all use them — a page's `is:global` styles only
+   * ship with that page.
+   */
+  .site .rows { list-style: none; padding: 0; display: grid; gap: 1rem; }
+  .site .row { display: grid; grid-template-columns: 7rem 4rem minmax(0, 1fr) 10rem; gap: 1.25rem; align-items: center; border: 2px solid var(--ink); background: var(--paper); padding: 0.75rem; }
+  .site .row--noimage { grid-template-columns: 4rem minmax(0, 1fr) 10rem; }
+  .site .row:hover { background: var(--shade); }
+  /* The next event up reads as the torn-off ticket the design is built around. */
+  .site .rows--next > li:first-child .row { background: var(--amber); }
+  .site .rows--next > li:first-child .row:hover { background: var(--ink); color: var(--paper); }
+  .site .rows--next > li:first-child .row:hover .row__date { border-right-color: var(--paper); }
+  .site .rows--next > li:first-child .row:hover .row__summary,
+  .site .rows--next > li:first-child .row:hover .row__meta { color: inherit; }
+  .site .row__thumb { display: block; }
+  .site .row__thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid var(--ink); }
+  .site .row__date { display: grid; justify-items: center; line-height: 1; border-right: 2px dashed var(--ink); padding-right: 1rem; }
+  .site .row__day { font-weight: 800; font-size: 1.75rem; letter-spacing: -0.03em; }
+  .site .row__mon { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 0.2rem; }
+  .site .row__title { font-size: 1.125rem; font-weight: 700; line-height: 1.25; margin-bottom: 0.3rem; }
+  .site .row__title a { text-decoration: none; }
+  .site .row__title a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .site .row__summary { font-size: 0.875rem; color: var(--ink-soft); line-height: 1.5; margin-bottom: 0.35rem; max-width: 52ch; }
+  .site .row__meta { font-size: 0.75rem; color: var(--ink-faint); }
+  .site .row__end { display: grid; justify-items: end; gap: 0.6rem; }
+  .site .row__go { font-size: 0.8125rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .site .row__go:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .site .undernote { margin-top: 1.25rem; font-size: 0.875rem; }
+  .site .timenote { margin-top: 1rem; font-size: 0.75rem; color: var(--ink-faint); }
+
+  /* ---------- Announcement cards ---------- */
+  .site .notes { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; align-items: start; }
+  .site .notes--list { grid-template-columns: 1fr; gap: 1rem; }
+  .site .note { background: var(--paper); border: 2px solid var(--ink); border-top-width: 6px; border-top-color: var(--amber); padding: 1.1rem 1.25rem; }
+  .site .note__date { font-size: 0.6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--amber-text); margin-bottom: 0.5rem; }
+  .site .note__title { font-size: 1.125rem; font-weight: 700; line-height: 1.25; margin-bottom: 0.45rem; }
+  .site .note__title a { text-decoration: none; }
+  .site .note__title a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .site .note__body { font-size: 0.9375rem; color: var(--ink-soft); line-height: 1.6; }
+  .site .note__more { display: inline-block; margin-top: 0.75rem; font-size: 0.8125rem; font-weight: 700; }
+  .site .note__thumb { margin-bottom: 0.9rem; }
+  .site .note__thumb img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--ink); }
+
+  /* ---------- Empty states ---------- */
+  .site .empty { border: 2px dashed var(--ink); padding: clamp(1.25rem, 3vw, 2rem); max-width: 60ch; }
+  .site .empty p { line-height: 1.6; }
+  .site .empty .btn { margin-top: 1.1rem; }
+
+  /* ---------- Markdown bodies ---------- */
+  .site .prose { font-size: 1.0625rem; line-height: 1.7; max-width: 62ch; }
+  .site .prose > * + * { margin-top: 1.15rem; }
+  .site .prose h2 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-top: 2.25rem; }
+  .site .prose h3 { font-size: 1.1875rem; font-weight: 800; margin-top: 1.75rem; }
+  .site .prose ul, .site .prose ol { padding-inline-start: 1.25rem; }
+  .site .prose li + li { margin-top: 0.4rem; }
+  .site .prose ul { list-style: disc; }
+  .site .prose ol { list-style: decimal; }
+  .site .prose a { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; text-decoration-color: var(--amber); }
+  .site .prose img { border: 2px solid var(--ink); }
+  .site .prose blockquote { border-left: 6px solid var(--amber); padding-left: 1rem; color: var(--ink-soft); }
+  .site .prose hr { border: 0; border-top: 2px solid var(--ink); margin-block: 2rem; }
+  .site .prose code { font-family: ui-monospace, monospace; font-size: 0.9em; background: var(--shade); padding: 0.1em 0.3em; }
+
+  /* ---------- Supplied artwork ---------- */
+  /*
+   * `.art` is any illustration standing on a ground that is already its own
+   * cream: no frame, no edge, nothing around it. `paper--*` paints that ground
+   * where the page cream is not already the right one.
+   */
+  .site .art { display: block; width: 100%; height: auto; }
+  .site .paper--bottle { background: var(--paper-bottle); }
+  .site .paper--disco { background: var(--paper-disco); }
+  .site .paper--roundel { background: var(--paper-roundel); }
+  .site .paper--stein { background: var(--paper-stein); }
+
+  /* Two creams meeting are only a couple of units apart, which would read as a
+     printing fault rather than a decision. An amber rule makes it deliberate. */
+  .site .band--top { border-top: 2px solid var(--amber); }
+  .site .band--bottom { border-bottom: 2px solid var(--amber); }
+
+  /* ---------- Logo placeholder ---------- */
+  .site .logoslot { color: var(--ink-faint); }
+  /* `img.` on purpose: these must not match the LogoSlot placeholder, whose
+     square height would be overridden by `height: auto` and turn it oval. */
+  .site img.bar__logo { width: 2.375rem; height: auto; border-radius: 50%; }
+  .site img.foot__logo { width: 4.5rem; height: auto; border-radius: 50%; }
+
+  /* ---------- Footer ---------- */
+  .site .foot { border-top: 2px solid var(--ink); margin-top: clamp(3rem, 6vw, 5rem); }
+  .site .foot__inner { padding: 2.5rem 0 4rem; display: grid; gap: 0.75rem; }
+  .site .foot__brand { display: flex; align-items: center; gap: 1.1rem; margin-bottom: 0.5rem; }
+  .site .foot__mark { font-weight: 800; font-size: 2.5rem; letter-spacing: -0.035em; line-height: 1; }
+  .site .foot__tag { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-faint); }
+  .site .foot__cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) auto; gap: 1.5rem 2rem; align-items: start; padding: 1.5rem 0; border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); margin: 0.75rem 0 1rem; }
+  .site .foot__cols ul { display: grid; gap: 0.5rem; }
+  .site .foot__cols a { font-size: 0.875rem; font-weight: 600; text-decoration: none; }
+  .site .foot__cols a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .site .foot__note { font-size: 0.75rem; color: var(--ink-soft); max-width: 58ch; line-height: 1.6; }
+
+  @media (max-width: 62rem) {
+    .site .pagehead__grid { grid-template-columns: minmax(0, 1fr) 9rem; }
+    .site .notes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .site .row { grid-template-columns: 5rem 3.5rem minmax(0, 1fr); }
+    .site .row--noimage { grid-template-columns: 3.5rem minmax(0, 1fr); }
+    .site .row__end { grid-column: 1 / -1; justify-items: start; display: flex; align-items: center; gap: 1rem; }
+  }
+  @media (max-width: 54rem) {
+    .site .bar__nav, .site .bar__cta { display: none; }
+    .site .burger { display: flex; }
+    .site .foot__cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 44rem) {
+    .site .notes { grid-template-columns: 1fr; }
+    .site .pagehead__grid { grid-template-columns: 1fr; }
+    .site .pagehead__art { max-width: 9rem; }
+    .site .row { grid-template-columns: 3.5rem minmax(0, 1fr); gap: 0.9rem; }
+    .site .row__thumb { display: none; }
+  }
+</style>

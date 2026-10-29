@@ -1,0 +1,106 @@
+{
+  "name": "Aegir",
+  "tagline": "The Oxford beer society",
+  "description": "Aegir is a beer society in Oxford. Tastings, brewery trips and socials through the year.",
+  "branding": {
+    "logo": null,
+    "wordmark": "Aegir",
+    "shareImage": {
+      "src": "/media/graphics/share-bottle-walk.jpg",
+      "alt": "Hand-drawn illustration of a figure striding along with a beer bottle for a head.",
+      "width": 1200,
+      "height": 630
+    }
+  },
+  "mailingList": {
+    "url": null,
+    "heading": "Mailing list heading",
+    "body": "Short paragraph placeholder — one or two lines about what goes out on the mailing list and how often.",
+    "cta": "Join the mailing list",
+    "unavailableNote": "The signup link has not been supplied yet, so this button is inactive."
+  },
+  "contact": {
+    "email": null,
+    "links": [
+      {
+        "label": "Instagram",
+        "url": "https://www.instagram.com/aegir.oxford/",
+        "handle": "@aegir.oxford"
+      }
+    ]
+  },
+  "nav": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "About",
+      "href": "/about/"
+    },
+    {
+      "label": "Events",
+      "href": "/events/"
+    },
+    {
+      "label": "Announcements",
+      "href": "/announcements/"
+    }
+  ],
+  "home": {
+    "eyebrow": "The Oxford beer society",
+    "heading": "Main heading goes here, two or three lines of it",
+    "lead": "Lead paragraph placeholder. Two or three sentences introducing the society, what it does and who can join.",
+    "body": "Supporting paragraph placeholder. A little more detail, the sort of thing a prospective member would want to read before signing up.",
+    "primaryCta": "See events",
+    "secondaryCta": "Join the mailing list",
+    "eventsHeading": "Next up",
+    "eventsLink": "All events",
+    "announcementsHeading": "Announcements",
+    "announcementsLink": "All announcements",
+    "aboutHeading": "About heading",
+    "aboutBody": "Short paragraph placeholder introducing the society, with the longer version on the About page.",
+    "aboutLink": "More about us",
+    "eventsEyebrow": "What is on",
+    "announcementsEyebrow": "News",
+    "aboutEyebrow": "Who we are"
+  },
+  "text": {
+    "eventsTitle": "Events",
+    "eventsEyebrow": "What is on",
+    "eventsLead": "Lead paragraph placeholder — a line or two about the sort of thing the society puts on through the year.",
+    "upcomingHeading": "Upcoming",
+    "pastHeading": "Past events",
+    "noUpcomingEvents": "Nothing is in the diary at the moment. Join the mailing list and we will let you know as soon as the next event is announced.",
+    "noPastEvents": "No past events are listed yet.",
+    "announcementsTitle": "Announcements",
+    "announcementsEyebrow": "News",
+    "announcementsLead": "Lead paragraph placeholder — notices, results and anything else the society needs to put in writing.",
+    "noAnnouncements": "No announcements have been posted yet.",
+    "committeeHeading": "Committee",
+    "noCommittee": "Committee profiles have not been added yet.",
+    "detailsHeading": "Details",
+    "bookingCta": "Book a place",
+    "cancelledLabel": "Cancelled",
+    "cancelledFallbackNote": "This event is not going ahead.",
+    "pastLabel": "Past event",
+    "dateLabel": "Date",
+    "timeLabel": "Time",
+    "locationLabel": "Location",
+    "priceLabel": "Price",
+    "eventDetailLink": "Details",
+    "announcementDetailLink": "Read more",
+    "backToEvents": "All events",
+    "backToAnnouncements": "All announcements",
+    "moreEventsHeading": "More events",
+    "mailingHeadingShort": "Mailing list heading",
+    "notFoundHeading": "Page not found",
+    "notFoundBody": "That page does not exist, or it has moved. Everything on the site is one of the links below.",
+    "timezoneNote": "All times are Oxford local time (GMT in winter, BST in summer)."
+  },
+  "status": {
+    "placeholderContent": true,
+    "placeholderNote": "Placeholder content — the wording on this site is an example until the society supplies its own copy.",
+    "noindex": true
+  }
+}

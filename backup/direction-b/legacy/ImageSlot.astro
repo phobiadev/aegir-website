@@ -1,0 +1,59 @@
+---
+/**
+ * A blank image slot. KEPT FOR THE DIRECTION B BACKUP ONLY.
+ *
+ * The live site no longer uses this: event and announcement pictures now come
+ * from the CMS content in `content/`, and an entry with no picture simply has
+ * none. Direction B's markup still references it, so it lives here with the
+ * rest of that design's legacy dependencies.
+ *
+ * It paints nothing of its own beyond a hairline and a label; the layout
+ * styles `.imgslot` to suit the palette.
+ */
+interface Props {
+  /** CSS aspect-ratio, e.g. '3 / 4'. Ignored when `fill` is set. */
+  ratio?: string;
+  /** Stretch to the height of the grid area instead of holding a ratio. */
+  fill?: boolean;
+  /** Overrides the "Image" caption. */
+  label?: string;
+  class?: string;
+}
+const { ratio = '4 / 3', fill = false, label = 'Image', class: cls = '' } = Astro.props;
+---
+
+<div
+  class:list={['imgslot', fill && 'imgslot--fill', cls]}
+  style={fill ? undefined : `aspect-ratio:${ratio}`}
+  aria-hidden="true"
+>
+  <span class="imgslot__label">{label}</span>
+</div>
+
+<style is:global>
+  .imgslot {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    min-height: 3.5rem;
+    /* `color` is set by the layout to a value that passes AA on its ground;
+       the hairline and hatch are mixed down from it, the label is not. */
+    border: 1px dashed color-mix(in srgb, currentColor 45%, transparent);
+    background-image: repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, currentColor 14%, transparent) 0 1px,
+      transparent 1px 11px
+    );
+    background-clip: padding-box;
+  }
+  .imgslot--fill { height: 100%; }
+  .imgslot__label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    /* The slot's own flat colour, so the label is never read over the hatch. */
+    background-color: inherit;
+  }
+</style>

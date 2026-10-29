@@ -1,0 +1,51 @@
+---
+/**
+ * One event as a tear-off ticket row — the unit the design is built around.
+ *
+ * Used by the homepage, the events list and the "more events" block on an
+ * event page, so its styles live in `Site.astro`, not here.
+ *
+ * `data-cutoff` is the millisecond timestamp at which the event stops being
+ * upcoming. The browser-side regrouping reads it; nothing else does. It is
+ * only ever written for published events, so a draft cannot leak through it.
+ */
+import { url } from '../lib/urls.ts';
+import { text, eventCutoff, type EventEntry } from '../lib/content.ts';
+import { formatDate, formatDayNumber, formatMonthShort, formatTimeRange, machineDate } from '../lib/datetime.ts';
+
+interface Props {
+  event: EventEntry;
+  /** Hide the thumbnail column even when the event has an image. */
+  compact?: boolean;
+}
+const { event, compact = false } = Astro.props;
+const { title, start, end, location, description, price, image, imageAlt, cancelled } = event.data;
+
+const href = url(`/events/${event.id}/`);
+const time = formatTimeRange(start, end);
+const meta = [formatDate(start), time, location, price].filter(Boolean).join(' · ');
+const showImage = !compact && !!image;
+---
+
+<li class="row-item" data-cutoff={eventCutoff(event).getTime()}>
+  <article class:list={['row', !showImage && 'row--noimage']}>
+    {showImage && image && (
+      <a class="row__thumb" href={href} tabindex="-1" aria-hidden="true">
+        <img src={url(image)} alt={imageAlt ?? ''} loading="lazy" decoding="async" />
+      </a>
+    )}
+    <p class="row__date">
+      <span class="row__day">{formatDayNumber(start)}</span>
+      <span class="row__mon">{formatMonthShort(start)}</span>
+    </p>
+    <div class="row__body">
+      <h3 class="row__title"><a href={href}>{title}</a></h3>
+      <p class="row__summary">{description}</p>
+      <p class="row__meta"><time datetime={machineDate(start)}>{meta}</time></p>
+    </div>
+    <div class="row__end">
+      {cancelled && <span class="chip chip--cancelled">{text.cancelledLabel}</span>}
+      <a class="row__go" href={href}>{text.eventDetailLink} &rarr;</a>
+    </div>
+  </article>
+</li>

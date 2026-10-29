@@ -1,0 +1,52 @@
+---
+/**
+ * Announcements — newest first. Drafts never reach this list; see
+ * `src/lib/content.ts`.
+ */
+import Site from '../../layouts/Site.astro';
+import AnnouncementCard from '../../components/AnnouncementCard.astro';
+import { getAnnouncements, text } from '../../lib/content.ts';
+import { excerpt } from '../../lib/excerpt.ts';
+import { artwork } from '../../config/artwork.ts';
+import { url } from '../../lib/urls.ts';
+
+const announcements = await getAnnouncements();
+---
+
+<Site title={text.announcementsTitle} section="/announcements/" description={text.announcementsLead}>
+  <section class="pagehead">
+    <div class="shell pagehead__grid">
+      <div>
+        <p class="eyebrow">{text.announcementsEyebrow}</p>
+        <h1 class="display pagehead__title">{text.announcementsTitle}</h1>
+        <p class="pagehead__lead">{text.announcementsLead}</p>
+      </div>
+      <!-- The disco figure shares the page's cream exactly, so it needs no
+           ground of its own. -->
+      <img
+        class="art pagehead__art"
+        src={url(artwork.disco.src)} alt={artwork.disco.alt}
+        width={artwork.disco.width} height={artwork.disco.height}
+        fetchpriority="high" decoding="async"
+      />
+    </div>
+  </section>
+
+  <section class="section section--tight">
+    <div class="shell">
+      {announcements.length > 0 ? (
+        <ul class="notes notes--list">
+          {announcements.map((announcement) => (
+            <AnnouncementCard
+              announcement={announcement}
+              summary={excerpt(announcement.body, 320)}
+              withImage
+            />
+          ))}
+        </ul>
+      ) : (
+        <div class="empty"><p>{text.noAnnouncements}</p></div>
+      )}
+    </div>
+  </section>
+</Site>
