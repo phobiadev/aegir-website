@@ -80,12 +80,19 @@ content:
     format: yaml-frontmatter
     exclude: ['.gitkeep']
     # The filename is the web address: content/events/tasting-evening.md is
-    # served at /events/tasting-evening/. It is suggested from the title when
+    # served at /events/tasting-evening/. It is generated from the title when
     # the event is created and then left alone, so renaming an event later
     # does not break a link that has already been shared.
+    #
+    # `field: false` hides the filename box. It used to be `create`, which
+    # showed it — and whatever an editor typed became the filename verbatim,
+    # so a name without ".md" was saved with no extension and Pages CMS
+    # refused it: `Invalid extension "" for content "events"`. The editor
+    # guide promises you cannot break the site by typing in the wrong box, so
+    # the box is gone rather than documented around.
     filename:
       template: '{primary}.md'
-      field: create
+      field: false
     view:
       primary: title
       fields: [title, start, location, draft, cancelled]
@@ -245,9 +252,11 @@ content:
     path: content/announcements
     format: yaml-frontmatter
     exclude: ['.gitkeep']
+    # Generated from the title; the box is hidden so a name without ".md"
+    # cannot be saved. See the events collection above.
     filename:
       template: '{primary}.md'
-      field: create
+      field: false
     view:
       primary: title
       fields: [title, date, draft]

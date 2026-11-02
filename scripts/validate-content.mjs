@@ -265,6 +265,36 @@ function validatePagesConfig() {
       fail(file, `${at} is a single file, so ${entry.path} must not be a folder.`);
     }
 
+    // The filename is the URL, and a bad one is not a build error — it is a
+    // save that Pages CMS refuses, hours later, in front of an editor. Both
+    // of these have already happened once.
+    if (entry.type === 'collection') {
+      const filename = entry.filename;
+      const template = typeof filename === 'string' ? filename : filename?.template;
+      if (!template) {
+        fail(file, `${at} has no filename template, so a new entry has no name to be saved under.`);
+      } else if (!template.endsWith('.md')) {
+        fail(
+          file,
+          `${at} filename template "${template}" does not end in ".md". Pages CMS refuses a ` +
+            `file with no extension: 'Invalid extension "" for content "${entry.name}"'.`,
+        );
+      }
+      // `field: create` or `true` shows the editor a filename box, and
+      // whatever they type is used verbatim — a name without ".md" is saved
+      // with no extension and the save fails. The template already produces
+      // the right name; the box can only make it wrong.
+      if (filename && typeof filename === 'object' && filename.field !== false) {
+        fail(
+          file,
+          `${at} sets filename.field to ${JSON.stringify(filename.field)}, which shows editors a ` +
+            `filename box. Whatever they type is used as-is, so a name without ".md" is saved ` +
+            `with no extension and Pages CMS rejects it. Use \`field: false\` and let the ` +
+            `template generate the name.`,
+        );
+      }
+    }
+
     for (const field of everyField(entry.fields)) {
       if (field.options?.media && typeof field.options.media === 'string' && !mediaByName.has(field.options.media)) {
         fail(file, `${at} field "${field.name}" uses media "${field.options.media}", which is not defined.`);

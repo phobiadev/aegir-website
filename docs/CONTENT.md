@@ -29,9 +29,16 @@ correct both under a GitHub Pages project path and at a custom-domain root.
 
 The filename is the URL. `content/events/michaelmas-tasting.md` is served at
 `/events/michaelmas-tasting/`, so use short, lower-case, hyphenated names and
-**do not rename a file once it has been shared** — the old link will break. The
-CMS offers the filename only when an entry is created, for exactly that reason:
-retitling an event afterwards leaves its address alone.
+**do not rename a file once it has been shared** — the old link will break.
+
+The CMS does not ask for the filename at all: it generates one from the title
+when the entry is created (`Michaelmas Tasting` becomes
+`michaelmas-tasting.md`) and then leaves it alone, so retitling an event
+afterwards does not move it. It used to offer a filename box, and whatever was
+typed became the name verbatim — a name without `.md` was saved with no
+extension and Pages CMS refused it. `npm run validate` now fails on that
+configuration. To give an entry a shorter address, rename the file in the
+repository **before** the link is shared anywhere.
 
 A file whose name starts with an underscore (`_scratch.md`) is ignored
 completely. For something the CMS should still list, use `draft: true` instead.

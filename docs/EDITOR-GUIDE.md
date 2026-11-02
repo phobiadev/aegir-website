@@ -68,11 +68,13 @@ history shows who changed what.
 | **Draft** | See [drafts](#4-draft-or-published). |
 | **Full details** | The body of the event's page. Headings, bold, links, lists and pictures all work. |
 
-The **web address comes from the title** and is offered to you only when you
-first create the event — `Michaelmas Tasting` becomes
-`…/events/michaelmas-tasting/`. Edit it then if you want something shorter.
+The **web address comes from the title**, automatically — `Michaelmas Tasting`
+becomes `…/events/michaelmas-tasting/`. There is nothing for you to fill in.
+
 Afterwards, changing the title does **not** change the address, so a link you
-have already put on Instagram keeps working.
+have already put on Instagram keeps working. If you want a shorter address than
+the title gives you, ask whoever looks after the site to rename the file —
+**before** you share the link anywhere.
 
 Press **Save**. Once publishing is set up, the site rebuilds by itself; allow a
 couple of minutes.
