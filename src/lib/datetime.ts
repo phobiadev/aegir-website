@@ -80,6 +80,26 @@ export function instantFromLondonWallClock(
 const WALL_CLOCK = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::\d{2})?(?:\.\d+)?)?$/;
 const HAS_OFFSET = /(?:Z|[+-]\d{2}:?\d{2})$/i;
 
+/**
+ * Is this a day that exists, and a time that exists?
+ *
+ * The shape regex above is happy with `2026-11-31` and `2026-02-30`, and
+ * `Date.UTC` would quietly roll both forward a day — so an editor's slip would
+ * ship as a real, wrong date instead of failing validation with the reason.
+ * November having thirty days is exactly the mistake worth catching.
+ */
+function isRealWallClock(
+  year: number, month: number, day: number, hour: number, minute: number,
+): boolean {
+  if (month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59) return false;
+  const probe = new Date(Date.UTC(year, month - 1, day));
+  return (
+    probe.getUTCFullYear() === year &&
+    probe.getUTCMonth() === month - 1 &&
+    probe.getUTCDate() === day
+  );
+}
+
 /** True when a string names an absolute instant rather than a wall clock. */
 export function carriesOffset(value: string): boolean {
   return HAS_OFFSET.test(value.trim());
@@ -112,9 +132,10 @@ export function readTimestamp(value: string | Date): Timestamp | null {
   const match = WALL_CLOCK.exec(text);
   if (!match) return null;
   const [, y, mo, d, h, mi] = match;
-  const instant = instantFromLondonWallClock(
-    Number(y), Number(mo), Number(d), h ? Number(h) : 0, mi ? Number(mi) : 0,
-  );
+  const [year, month, day] = [Number(y), Number(mo), Number(d)];
+  const [hour, minute] = [h ? Number(h) : 0, mi ? Number(mi) : 0];
+  if (!isRealWallClock(year, month, day, hour, minute)) return null;
+  const instant = instantFromLondonWallClock(year, month, day, hour, minute);
   if (Number.isNaN(instant.getTime())) return null;
   return { instant: instant.toISOString(), hasTime: h !== undefined };
 }
@@ -160,22 +181,37 @@ export function formatTimeRange(start: Timestamp, end?: Timestamp): string {
   return formatTime(start);
 }
 
-/**
- * The moment an event stops counting as upcoming.
- *
- * The end time when there is one. Otherwise the next London midnight after the
- * start — so an evening event stays on the Upcoming list for the rest of its
- * own night and drops off when the date does, which is what a reader expects.
- */
-export function cutoffInstant(start: Timestamp, end?: Timestamp): Date {
-  if (end) return new Date(end.instant);
-  const d = new Date(start.instant);
+/** The next London midnight after whatever London day an instant falls on. */
+function nextLondonMidnight(ts: Timestamp): Date {
   const parts = Object.fromEntries(
-    partsFormatter.formatToParts(d).map((p) => [p.type, p.value]),
+    partsFormatter.formatToParts(new Date(ts.instant)).map((p) => [p.type, p.value]),
   ) as Record<string, string>;
   return instantFromLondonWallClock(
     Number(parts.year), Number(parts.month), Number(parts.day) + 1, 0, 0,
   );
+}
+
+/**
+ * The moment an event stops counting as upcoming.
+ *
+ * An end TIME is the cutoff exactly. Anything else names a DAY rather than a
+ * moment, and the event runs to the end of that day — so an evening event
+ * stays on the Upcoming list for the rest of its own night and drops off when
+ * the date does, which is what a reader expects.
+ *
+ * A date-only `end` is the case worth spelling out. Its instant is that day's
+ * MIDNIGHT, so using it directly would drop a two-day trip written as
+ * `start: 2026-07-10` / `end: 2026-07-12` at the start of the 12th, before its
+ * last day had happened. The same applies to `timeTbc`, which suppresses the
+ * time on both values. A date-only end later than the start therefore names
+ * the last day, and the cutoff is the midnight after it.
+ */
+export function cutoffInstant(start: Timestamp, end?: Timestamp): Date {
+  if (end?.hasTime) return new Date(end.instant);
+  // A nonsensical end (before the start) is ignored rather than making the
+  // event instantly past.
+  const lastDay = end && end.instant > start.instant ? end : start;
+  return nextLondonMidnight(lastDay);
 }
 
 /**

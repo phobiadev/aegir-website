@@ -17,11 +17,14 @@ import committeeFile from '../../content/settings/committee.json';
 /** Society-wide settings. Invalid settings fail the build, with the reason. */
 export const settings = settingsSchema.parse(settingsFile);
 
-/** Committee profiles, lowest `order` first. */
-export const committee = committeeSchema
-  .parse(committeeFile)
-  .map((person, index) => ({ ...person, index }))
-  .sort((a, b) => a.order - b.order || a.index - b.index);
+/**
+ * Committee profiles, in the order they are written in the file.
+ *
+ * The file order IS the display order. There is deliberately no `order` field
+ * to disagree with it — the CMS list is drag-reorderable and writes the array
+ * in the order the editor sees, so what they drag is what the page shows.
+ */
+export const committee = committeeSchema.parse(committeeFile);
 
 export type EventEntry = CollectionEntry<'events'>;
 export type AnnouncementEntry = CollectionEntry<'announcements'>;

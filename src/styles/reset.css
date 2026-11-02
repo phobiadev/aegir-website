@@ -5,6 +5,15 @@
 html { -webkit-text-size-adjust: 100%; }
 body { -webkit-font-smoothing: antialiased; line-height: 1.5; }
 img, picture, svg, video { display: block; max-width: 100%; }
+/*
+ * `height: auto` is not optional once images carry width/height attributes.
+ * Those attributes exist so the browser can reserve the right space before the
+ * file arrives, but the HTML `height` is a presentational hint that beats
+ * `aspect-ratio` — so a thumbnail sized `width: 100%; aspect-ratio: 4 / 3`
+ * would be drawn at the file's full pixel height instead. Letting CSS own the
+ * height keeps the attributes doing only the job they are there for.
+ */
+img { height: auto; }
 /* `hidden` must beat a layout `display`: the event lists are grids and are
    hidden when empty, in the markup and by the regrouping script. */
 [hidden] { display: none !important; }

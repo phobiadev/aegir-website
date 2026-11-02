@@ -8,7 +8,7 @@
  *
  * So no template writes `href="/events/"`. Internal links, brand assets, CMS
  * image paths and the images inside Markdown bodies all go through here —
- * Markdown via the small remark plugin in `src/lib/remark-base-url.mjs`, which
+ * Markdown via the small Satteri plugin in `src/lib/hast-base-url.mjs`, which
  * applies exactly the same rule at build time.
  */
 

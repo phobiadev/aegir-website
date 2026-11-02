@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "Aegir — Oxford beer society. Stage 2: the site.",
+  "description": "Aegir — Oxford beer society. Static Astro site with a file-based content layer.",
   "engines": {
     "node": ">=22.23.4"
   },
@@ -15,7 +15,12 @@
     "build:pages": "BASE_PATH=/aegir-website/ astro build",
     "preview": "astro preview",
     "validate": "node scripts/validate-content.mjs",
-    "check": "npm run validate && astro build",
+    "typecheck": "astro check",
+    "test": "node --test tests/",
+    "check:output": "node scripts/check-output.mjs dist",
+    "inspect": "node scripts/inspect-pages.mjs",
+    "check": "npm run validate && npm run typecheck && npm run test && npm run verify:builds",
+    "verify:builds": "node scripts/verify-builds.mjs",
     "astro": "astro"
   },
   "dependencies": {
@@ -23,5 +28,11 @@
     "@fontsource-variable/archivo": "^5.3.0",
     "astro": "^7.4.2",
     "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@types/node": "^26.6.6",
+    "playwright": "^1.64.1",
+    "typescript": "^6.0.3"
   }
 }

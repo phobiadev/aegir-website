@@ -4,6 +4,7 @@
  * Styles live in `Site.astro` — both pages use them.
  */
 import { url } from '../lib/urls.ts';
+import { imageSize } from '../lib/image-size.mjs';
 import { text, type AnnouncementEntry } from '../lib/content.ts';
 import { formatDate, machineDate } from '../lib/datetime.ts';
 
@@ -17,12 +18,17 @@ interface Props {
 const { announcement, summary, withImage = false } = Astro.props;
 const { title, date, image, imageAlt } = announcement.data;
 const href = url(`/announcements/${announcement.id}/`);
+const thumb = withImage ? imageSize(image) : null;
 ---
 
 <li class="note">
   {withImage && image && (
     <a class="note__thumb" href={href} tabindex="-1" aria-hidden="true">
-      <img src={url(image)} alt={imageAlt ?? ''} loading="lazy" decoding="async" />
+      <img
+        src={url(image)} alt={imageAlt ?? ''}
+        width={thumb?.width} height={thumb?.height}
+        loading="lazy" decoding="async"
+      />
     </a>
   )}
   <p class="note__date"><time datetime={machineDate(date)}>{formatDate(date)}</time></p>

@@ -15,6 +15,7 @@ import { getEvents, getGroupedEvents, eventCutoff, text, type EventEntry } from 
 import { formatWhen, formatDate, formatTimeRange, machineDate } from '../../lib/datetime.ts';
 import { artwork } from '../../config/artwork.ts';
 import { url } from '../../lib/urls.ts';
+import { imageSize } from '../../lib/image-size.mjs';
 
 export async function getStaticPaths() {
   const events = await getEvents();
@@ -30,6 +31,9 @@ const { upcoming, past } = await getGroupedEvents();
 const isPast = eventCutoff(event) <= new Date();
 const others = [...upcoming, ...past].filter((other) => other.id !== event.id).slice(0, 3);
 const time = formatTimeRange(start, end);
+// Read off the file so the browser reserves the right space and the page does
+// not jump when the picture arrives. See src/lib/image-size.mjs.
+const photo = imageSize(image);
 ---
 
 <Site
@@ -83,7 +87,11 @@ const time = formatTimeRange(start, end);
 
         {image && imageAlt && (
           <figure class="detail__photo">
-            <img src={url(image)} alt={imageAlt} loading="lazy" decoding="async" />
+            <img
+              src={url(image)} alt={imageAlt}
+              width={photo?.width} height={photo?.height}
+              loading="lazy" decoding="async"
+            />
           </figure>
         )}
 

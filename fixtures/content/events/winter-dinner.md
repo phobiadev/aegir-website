@@ -1,6 +1,7 @@
 ---
 title: Event title with a date but no time yet
-start: "2026-12-10"
+start: "2026-12-10 00:00"
+timeTbc: true
 location: Venue to be confirmed
 description: Description placeholder — the date is fixed but the time is not, so no time is shown anywhere.
 draft: false

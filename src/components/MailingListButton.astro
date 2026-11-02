@@ -42,9 +42,18 @@ const noteId = note && !url ? 'mailing-list-note' : undefined;
 {noteId && <p class="inactive-note" id={noteId}>{unavailableNote}</p>}
 
 <style is:global>
-  /* Visibly a button, visibly not yet working. Position and size are
-     unchanged, so the real link lands exactly here. */
-  .site .btn.is-inactive {
+  /*
+   * Visibly a button, visibly not yet working. Position and size are
+   * unchanged, so the real link lands exactly here.
+   *
+   * Matched on the ELEMENT, not on `.btn`: the header and the mobile menu
+   * style their signup button with `.bar__cta` / `.sheet__cta` and never carry
+   * `.btn`, so a `.btn.is-inactive` rule left those two looking completely
+   * live while being disabled — the most prominent one on a phone. The active
+   * case renders an <a>, so `button.is-inactive` is exactly the inactive one,
+   * and the extra element selector clears `.site .bar__cta` on specificity.
+   */
+  .site button.is-inactive {
     cursor: not-allowed;
     border-style: dashed;
     opacity: 0.75;

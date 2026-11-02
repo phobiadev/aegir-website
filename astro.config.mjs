@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import { satteri } from '@astrojs/markdown-satteri';
 import { hastBaseUrl } from './src/lib/hast-base-url.mjs';
+import { hastImageAttrs } from './src/lib/hast-image-attrs.mjs';
 
 /**
  * Where the site is served from.
@@ -27,8 +28,13 @@ export default defineConfig({
   base: BASE_PATH,
   trailingSlash: 'always',
   markdown: {
-    // Root-relative URLs inside Markdown bodies get the same base treatment as
-    // the links the templates build. See src/lib/urls.ts.
-    processor: satteri({ hastPlugins: [hastBaseUrl({ base: BASE_PATH })] }),
+    // Pictures in Markdown bodies get their real size and lazy loading, then
+    // root-relative URLs get the same base treatment as the links the
+    // templates build. In that order: the sizing reads the file from `public/`,
+    // so it has to see the path before the base is prefixed to it.
+    // See src/lib/image-size.mjs and src/lib/urls.ts.
+    processor: satteri({
+      hastPlugins: [hastImageAttrs(), hastBaseUrl({ base: BASE_PATH })],
+    }),
   },
 });

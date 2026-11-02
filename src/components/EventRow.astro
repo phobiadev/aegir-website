@@ -10,6 +10,7 @@
  * only ever written for published events, so a draft cannot leak through it.
  */
 import { url } from '../lib/urls.ts';
+import { imageSize } from '../lib/image-size.mjs';
 import { text, eventCutoff, type EventEntry } from '../lib/content.ts';
 import { formatDate, formatDayNumber, formatMonthShort, formatTimeRange, machineDate } from '../lib/datetime.ts';
 
@@ -23,15 +24,22 @@ const { title, start, end, location, description, price, image, imageAlt, cancel
 
 const href = url(`/events/${event.id}/`);
 const time = formatTimeRange(start, end);
-const meta = [formatDate(start), time, location, price].filter(Boolean).join(' · ');
+// The date is the only part of the meta line that is a date, so it is the only
+// part inside the <time> element. The rest is ordinary text after it.
+const metaRest = [time, location, price].filter(Boolean).join(' · ');
 const showImage = !compact && !!image;
+const thumb = showImage ? imageSize(image) : null;
 ---
 
 <li class="row-item" data-cutoff={eventCutoff(event).getTime()}>
   <article class:list={['row', !showImage && 'row--noimage']}>
     {showImage && image && (
       <a class="row__thumb" href={href} tabindex="-1" aria-hidden="true">
-        <img src={url(image)} alt={imageAlt ?? ''} loading="lazy" decoding="async" />
+        <img
+          src={url(image)} alt={imageAlt ?? ''}
+          width={thumb?.width} height={thumb?.height}
+          loading="lazy" decoding="async"
+        />
       </a>
     )}
     <p class="row__date">
@@ -41,7 +49,7 @@ const showImage = !compact && !!image;
     <div class="row__body">
       <h3 class="row__title"><a href={href}>{title}</a></h3>
       <p class="row__summary">{description}</p>
-      <p class="row__meta"><time datetime={machineDate(start)}>{meta}</time></p>
+      <p class="row__meta"><time datetime={machineDate(start)}>{formatDate(start)}</time>{metaRest && ` · ${metaRest}`}</p>
     </div>
     <div class="row__end">
       {cancelled && <span class="chip chip--cancelled">{text.cancelledLabel}</span>}

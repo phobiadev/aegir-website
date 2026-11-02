@@ -1,0 +1,977 @@
+# Pages CMS — the society's content editor.
+#
+# This file tells the hosted editor at https://app.pagescms.org what may be
+# edited in this repository and how each value is stored. It is the CMS half of
+# a three-part agreement; the other two are `src/lib/schemas.ts`, which decides
+# whether a saved file is valid, and the templates in `src/`, which decide what
+# is actually shown. All three have to be changed together — see
+# docs/EDITOR-GUIDE.md, "Changing what a field does".
+#
+# `npm run validate` checks this file against the repository, so a path that
+# moves here and nowhere else is caught before a build.
+#
+# Reference: https://pagescms.org/docs/configuration/
+
+# ---------------------------------------------------------------------------
+# Media
+# ---------------------------------------------------------------------------
+# `input` is where files live in the repository; `output` is the path written
+# into content. Everything the site serves lives under `public/`, so the two
+# differ only by that prefix: picking public/media/photos/x.jpg stores
+# /media/photos/x.jpg.
+#
+# That stored value carries NO base path and no repository name. The base is
+# added once, at build time, by `src/lib/urls.ts` for template images and by
+# `src/lib/hast-base-url.mjs` for images inside rich text — so the same content
+# renders correctly both under a GitHub Pages project path
+# (/aegir-website/media/...) and at a custom-domain root (/media/...).
+#
+# Three folders, on purpose:
+#   media/uploads/   anything added through the CMS — the default for every
+#                    photo field below
+#   media/photos/    web-ready copies prepared from the supplied originals
+#   media/graphics/  the supplied illustrations and the brand assets
+#
+# The supplied originals themselves are in `reference-assets/`, which is
+# gitignored and outside `public/`, so the CMS cannot see or overwrite them.
+media:
+  - name: images
+    label: Images
+    input: public/media
+    output: /media
+    # HEIC and TIFF are deliberately absent: the site uses plain <img>, so a
+    # photo straight off an iPhone has to be converted first.
+    extensions: [jpg, jpeg, png, webp, avif, gif, svg]
+    # Slugify uploaded filenames, so "Beer Fest 2026 (1).JPG" becomes
+    # beer-fest-2026-1.jpg and the URL is predictable.
+    rename: safe
+
+# ---------------------------------------------------------------------------
+# Settings
+# ---------------------------------------------------------------------------
+settings:
+  content:
+    # Keep any key that this file does not describe. Insurance: if a field is
+    # added to `src/lib/schemas.ts` before it is added here, saving in the CMS
+    # will not silently delete it.
+    merge: true
+  commit:
+    # Commits are attributed to the editor who made them, so the history says
+    # who changed what.
+    identity: user
+    templates:
+      create: 'Add {filename} (via Pages CMS)'
+      update: 'Update {filename} (via Pages CMS)'
+      delete: 'Delete {filename} (via Pages CMS)'
+      rename: 'Rename {oldFilename} to {newFilename} (via Pages CMS)'
+
+# ---------------------------------------------------------------------------
+# Content
+# ---------------------------------------------------------------------------
+content:
+  # -------------------------------------------------------------------------
+  # Events
+  # -------------------------------------------------------------------------
+  - name: events
+    label: Events
+    description: One file per event. Each one gets its own page and a row in the listings.
+    type: collection
+    path: content/events
+    format: yaml-frontmatter
+    exclude: ['.gitkeep']
+    # The filename is the web address: content/events/tasting-evening.md is
+    # served at /events/tasting-evening/. It is suggested from the title when
+    # the event is created and then left alone, so renaming an event later
+    # does not break a link that has already been shared.
+    filename:
+      template: '{primary}.md'
+      field: create
+    view:
+      primary: title
+      fields: [title, start, location, draft, cancelled]
+      sort: [start, title]
+      search: [title, location, description]
+      default:
+        sort: start
+        order: desc
+    fields:
+      - name: title
+        label: Event title
+        type: string
+        required: true
+        description: Shown in the listings, on the event's own page and in the browser tab.
+        options:
+          maxlength: 120
+
+      - name: start
+        label: Starts
+        type: date
+        required: true
+        description: >-
+          Oxford local time — write the time exactly as it would appear on a
+          poster. 19:30 means half past seven in Oxford, whether that is GMT in
+          November or BST in July; the site works out the rest.
+        options:
+          time: true
+          format: 'yyyy-MM-dd HH:mm'
+
+      - name: timeTbc
+        label: Time not confirmed yet
+        type: boolean
+        default: false
+        description: >-
+          Tick this while only the date is settled. The date still appears
+          everywhere; the time is hidden until you untick it. (Pick any time
+          above — it will be ignored.)
+
+      - name: end
+        label: Ends
+        type: date
+        default: ''
+        description: >-
+          Optional, and also Oxford local time. With an end time the event
+          leaves the Upcoming list at that moment; without one it stays listed
+          until midnight on the night it starts.
+        options:
+          time: true
+          format: 'yyyy-MM-dd HH:mm'
+
+      - name: location
+        label: Location
+        type: string
+        required: true
+        description: Where it is. A venue name is enough; a street and city help people find it.
+        options:
+          maxlength: 160
+
+      - name: description
+        label: One-line summary
+        type: text
+        required: true
+        description: >-
+          One or two lines. This is what appears in the listings, in search
+          results and when the event is shared on social media — so it should
+          make sense on its own, away from the page.
+        options:
+          maxlength: 240
+
+      - name: price
+        label: Price
+        type: string
+        description: 'Free text, e.g. "Free", "£5 members / £8 guests", "£12 including the tour". Leave empty if there is nothing to pay or it is not settled.'
+        options:
+          maxlength: 80
+
+      - name: image
+        label: Photograph or poster
+        type: image
+        description: Optional. New uploads go into media/uploads; the prepared photographs are in media/photos.
+        options:
+          media: images
+          path: public/media/uploads
+
+      - name: imageAlt
+        label: Describe the picture
+        type: string
+        description: >-
+          REQUIRED as soon as you add a picture above — one short sentence
+          describing what is in it, for people using a screen reader. Saving
+          without it is allowed here, but the site will refuse to rebuild until
+          it is filled in.
+        options:
+          maxlength: 240
+
+      - name: bookingUrl
+        label: Booking link
+        type: string
+        description: 'Optional. A full web address starting https://, or a mailto: address.'
+        pattern:
+          regex: '^$|^(https?://|mailto:).+'
+          message: 'Must start with https:// (or mailto:), or be left empty.'
+
+      - name: bookingLabel
+        label: Booking button wording
+        type: string
+        description: 'Optional. Defaults to "Book a place" if left empty.'
+        options:
+          maxlength: 40
+
+      - name: cancelled
+        label: Cancelled
+        type: boolean
+        default: false
+        description: >-
+          The event STAYS on the site and is clearly marked as cancelled on
+          every listing and on its own page, so that anyone who already has the
+          date finds out. The booking button is hidden. Use this rather than
+          deleting the event.
+
+      - name: cancellationNote
+        label: Cancellation note
+        type: text
+        description: 'Optional, shown with the cancellation mark — one line about refunds or a replacement date.'
+        options:
+          maxlength: 300
+
+      - name: draft
+        label: Draft — keep this off the website
+        type: boolean
+        default: false
+        description: >-
+          While this is ticked the event has no page and appears in no listing,
+          no feed and no sharing card. Untick it to publish. Nothing else about
+          the entry changes.
+
+      - name: body
+        label: Full details
+        type: rich-text
+        description: >-
+          The body of the event's page. Everything essential should also be in
+          the fields above, because the listings and sharing cards only use
+          those.
+        options:
+          format: markdown
+          media: images
+          path: public/media/uploads
+          rename: safe
+
+  # -------------------------------------------------------------------------
+  # Announcements
+  # -------------------------------------------------------------------------
+  - name: announcements
+    label: Announcements
+    description: Notices and news. Newest first, and also published as an RSS feed.
+    type: collection
+    path: content/announcements
+    format: yaml-frontmatter
+    exclude: ['.gitkeep']
+    filename:
+      template: '{primary}.md'
+      field: create
+    view:
+      primary: title
+      fields: [title, date, draft]
+      sort: [date, title]
+      search: [title]
+      default:
+        sort: date
+        order: desc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+        options:
+          maxlength: 140
+
+      - name: date
+        label: Date
+        type: date
+        required: true
+        description: >-
+          The date this goes out. Announcements are listed newest first by this
+          date, so it can be backdated to place an older notice correctly.
+        options:
+          format: 'yyyy-MM-dd'
+
+      - name: image
+        label: Picture
+        type: image
+        description: Optional. New uploads go into media/uploads.
+        options:
+          media: images
+          path: public/media/uploads
+
+      - name: imageAlt
+        label: Describe the picture
+        type: string
+        description: >-
+          REQUIRED as soon as you add a picture above. One short sentence
+          describing what is in it, for people using a screen reader.
+        options:
+          maxlength: 240
+
+      - name: draft
+        label: Draft — keep this off the website
+        type: boolean
+        default: false
+        description: >-
+          While this is ticked the announcement has no page and appears in no
+          listing and in no feed. Untick it to publish.
+
+      - name: body
+        label: Announcement
+        type: rich-text
+        description: What you want to say. Headings, bold, links, lists and pictures all work.
+        options:
+          format: markdown
+          media: images
+          path: public/media/uploads
+          rename: safe
+
+  # -------------------------------------------------------------------------
+  # About page
+  # -------------------------------------------------------------------------
+  - name: about
+    label: About page
+    description: The wording on /about/. The committee list below is separate.
+    type: file
+    path: content/pages/about.md
+    format: yaml-frontmatter
+    operations:
+      delete: false
+    fields:
+      - name: title
+        label: Page title
+        type: string
+        required: true
+        description: Used in the browser tab and as the small label above the heading.
+        options:
+          maxlength: 80
+
+      - name: description
+        label: Summary for search engines
+        type: text
+        required: true
+        description: One or two lines. Not shown on the page itself — it is what search results and shared links display.
+        options:
+          maxlength: 240
+
+      - name: heading
+        label: Heading on the page
+        type: string
+        description: 'Optional. Leave empty to use the page title above.'
+        options:
+          maxlength: 120
+
+      - name: lead
+        label: Opening paragraph
+        type: text
+        description: Optional. Set slightly larger, above the main text.
+        options:
+          maxlength: 400
+
+      - name: body
+        label: About text
+        type: rich-text
+        required: true
+        description: The main text of the page. Headings, bold, links, lists and pictures all work.
+        options:
+          format: markdown
+          media: images
+          path: public/media/uploads
+          rename: safe
+
+  # -------------------------------------------------------------------------
+  # Committee
+  # -------------------------------------------------------------------------
+  - name: committee
+    label: Committee
+    description: The people shown on the About page. Drag the handles to change the order they appear in.
+    type: file
+    path: content/settings/committee.json
+    format: json
+    # The file is a plain list, so the CMS shows it as one reorderable list.
+    # The order of the list IS the order on the page — there is no separate
+    # position number to disagree with it.
+    list: true
+    operations:
+      delete: false
+    fields:
+      - name: role
+        label: Role
+        type: string
+        required: true
+        description: 'e.g. President, Secretary, Social Secretary. Shown above the name.'
+        options:
+          maxlength: 80
+
+      - name: name
+        label: Name
+        type: string
+        required: true
+        description: >-
+          Use "Name to be confirmed" or "Position open" until the person has
+          agreed to be named on a public page.
+        options:
+          maxlength: 80
+
+      - name: bio
+        label: Short biography
+        type: text
+        description: Optional. A sentence or two.
+        options:
+          maxlength: 400
+
+      - name: photo
+        label: Photograph
+        type: image
+        description: Optional. A head-and-shoulders picture works best.
+        options:
+          media: images
+          path: public/media/uploads
+
+      - name: photoAlt
+        label: Describe the photograph
+        type: string
+        description: >-
+          REQUIRED as soon as you add a photograph above. Describe the picture,
+          not the person's name. The site will refuse to rebuild without it.
+        options:
+          maxlength: 240
+
+  # -------------------------------------------------------------------------
+  # Site settings
+  # -------------------------------------------------------------------------
+  - name: site
+    label: Site settings
+    description: The society's name, the homepage wording, the mailing-list link, contact links, brand images, and every label on the site.
+    type: file
+    path: content/settings/site.json
+    format: json
+    operations:
+      delete: false
+    fields:
+      - name: name
+        label: Society name
+        type: string
+        required: true
+        options:
+          maxlength: 60
+
+      - name: tagline
+        label: Tagline
+        type: string
+        required: true
+        description: One short line, shown in the footer under the name.
+        options:
+          maxlength: 120
+
+      - name: description
+        label: Summary for search engines
+        type: text
+        required: true
+        description: Used on any page that has no summary of its own, and when a link to the site is shared.
+        options:
+          maxlength: 240
+
+      # ---- Brand images -------------------------------------------------
+      - name: branding
+        label: Brand images
+        type: object
+        required: true
+        fields:
+          - name: wordmark
+            label: Name as written in the header
+            type: string
+            required: true
+            description: The text beside the emblem in the header, menu and footer.
+            options:
+              maxlength: 60
+
+          - name: logo
+            label: Emblem
+            type: object
+            description: >-
+              Leave the picture empty to keep the dashed "Logo" placeholder in
+              the header, menu and footer. Filling it in replaces all three at
+              once.
+            fields:
+              - name: src
+                label: Emblem image
+                type: image
+                description: Brand artwork belongs in media/graphics.
+                options:
+                  media: images
+                  path: public/media/graphics
+              - name: alt
+                label: Describe the emblem
+                type: string
+                description: 'Required once there is an image, e.g. "The Aegir society emblem".'
+                options:
+                  maxlength: 160
+              - name: width
+                label: Width in pixels
+                type: number
+                description: Optional, but worth supplying — it stops the page jumping as the image loads.
+                options:
+                  min: 1
+              - name: height
+                label: Height in pixels
+                type: number
+                options:
+                  min: 1
+
+          - name: shareImage
+            label: Sharing picture
+            type: object
+            description: >-
+              The picture that appears when a link to the site is pasted into
+              WhatsApp, Instagram or a message. 1200 × 630 pixels works best.
+            fields:
+              - name: src
+                label: Sharing image
+                type: image
+                options:
+                  media: images
+                  path: public/media/graphics
+              - name: alt
+                label: Describe the sharing picture
+                type: string
+                description: Required once there is an image.
+                options:
+                  maxlength: 240
+              - name: width
+                label: Width in pixels
+                type: number
+                options:
+                  min: 1
+              - name: height
+                label: Height in pixels
+                type: number
+                options:
+                  min: 1
+
+      # ---- Mailing list -------------------------------------------------
+      - name: mailingList
+        label: Mailing list
+        type: object
+        required: true
+        fields:
+          - name: url
+            label: Signup link
+            type: string
+            description: >-
+              The society's existing signup page. Until this is filled in,
+              every "Join the mailing list" button on the site is visible but
+              deliberately inactive, with a note saying so.
+            pattern:
+              regex: '^$|^(https?://|mailto:).+'
+              message: 'Must start with https:// (or mailto:), or be left empty.'
+          - name: heading
+            label: Heading
+            type: string
+            required: true
+            options:
+              maxlength: 120
+          - name: body
+            label: Paragraph
+            type: text
+            required: true
+            description: One or two lines about what goes out and how often.
+            options:
+              maxlength: 400
+          - name: cta
+            label: Button wording
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: unavailableNote
+            label: Note shown while there is no link
+            type: text
+            required: true
+            description: Shown under the inactive button. Only visible while the signup link above is empty.
+            options:
+              maxlength: 240
+
+      # ---- Contact ------------------------------------------------------
+      - name: contact
+        label: Contact and social links
+        type: object
+        required: true
+        fields:
+          - name: email
+            label: Contact email address
+            type: string
+            description: Optional. Shown in the footer as a mailto link.
+            pattern:
+              regex: '^$|^[^@\s]+@[^@\s]+\.[^@\s]+$'
+              message: 'Must be an email address, or be left empty.'
+          - name: links
+            label: Social links
+            type: object
+            list:
+              collapsible:
+                collapsed: false
+                summary: '{label}'
+            fields:
+              - name: label
+                label: Name of the service
+                type: string
+                required: true
+                description: 'e.g. Instagram'
+                options:
+                  maxlength: 40
+              - name: url
+                label: Address
+                type: string
+                required: true
+                pattern:
+                  regex: '^(https?://|mailto:).+'
+                  message: 'Must start with https:// or mailto:.'
+              - name: handle
+                label: Shown instead of the address
+                type: string
+                description: 'Optional, e.g. @aegir.oxford.'
+                options:
+                  maxlength: 60
+
+      # ---- Navigation ---------------------------------------------------
+      - name: nav
+        label: Menu
+        type: object
+        required: true
+        description: The links in the header, the mobile menu and the footer, in order.
+        list:
+          min: 1
+          collapsible:
+            collapsed: false
+            summary: '{label} — {href}'
+        fields:
+          - name: label
+            label: Wording
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: href
+            label: Address
+            type: string
+            required: true
+            description: >-
+              A path on this site, with slashes at both ends — /, /about/,
+              /events/, /announcements/. Do not put the site address or the
+              repository name here; the site adds those itself.
+            options:
+              maxlength: 120
+
+      # ---- Homepage -----------------------------------------------------
+      - name: home
+        label: Homepage wording
+        type: object
+        required: true
+        description: Everything written on the front page. The events and announcements shown there come from their own sections.
+        fields:
+          - name: eyebrow
+            label: Small line above the headline
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: heading
+            label: Headline
+            type: string
+            required: true
+            description: The biggest text on the site. Two or three lines reads well.
+            options:
+              maxlength: 160
+          - name: lead
+            label: Opening paragraph
+            type: text
+            required: true
+            description: Two or three sentences introducing the society, what it does and who can join.
+            options:
+              maxlength: 400
+          - name: body
+            label: Second paragraph
+            type: text
+            required: true
+            options:
+              maxlength: 500
+          - name: primaryCta
+            label: Main button wording
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: secondaryCta
+            label: Second button wording
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: eventsEyebrow
+            label: 'Events block: small line'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: eventsHeading
+            label: 'Events block: heading'
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: eventsLink
+            label: 'Events block: link wording'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: announcementsEyebrow
+            label: 'Announcements block: small line'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: announcementsHeading
+            label: 'Announcements block: heading'
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: announcementsLink
+            label: 'Announcements block: link wording'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: aboutEyebrow
+            label: 'About block: small line'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: aboutHeading
+            label: 'About block: heading'
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: aboutBody
+            label: 'About block: paragraph'
+            type: text
+            required: true
+            description: A short version. The full text is on the About page.
+            options:
+              maxlength: 400
+          - name: aboutLink
+            label: 'About block: link wording'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+
+      # ---- Labels -------------------------------------------------------
+      - name: text
+        label: Labels and wording used across the site
+        type: object
+        required: true
+        description: >-
+          Page headings, button wording and the messages shown when a listing
+          is empty. These rarely need changing, but nothing here is written
+          into a template, so all of it can be reworded.
+        fields:
+          - name: eventsTitle
+            label: 'Events page: title'
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: eventsEyebrow
+            label: 'Events page: small line'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: eventsLead
+            label: 'Events page: opening paragraph'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: upcomingHeading
+            label: 'Events page: "Upcoming" heading'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: pastHeading
+            label: 'Events page: "Past events" heading'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: noUpcomingEvents
+            label: 'Events page: message when nothing is coming up'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: noPastEvents
+            label: 'Events page: message when there are no past events'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: announcementsTitle
+            label: 'Announcements page: title'
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: announcementsEyebrow
+            label: 'Announcements page: small line'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: announcementsLead
+            label: 'Announcements page: opening paragraph'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: noAnnouncements
+            label: 'Announcements page: message when there are none'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: committeeHeading
+            label: 'About page: committee heading'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: noCommittee
+            label: 'About page: message when the committee list is empty'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: detailsHeading
+            label: 'Event page: details panel heading'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: bookingCta
+            label: 'Event page: default booking button wording'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: cancelledLabel
+            label: 'Event page: cancellation mark'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: cancelledFallbackNote
+            label: 'Event page: cancellation note when none was written'
+            type: text
+            required: true
+            options:
+              maxlength: 240
+          - name: pastLabel
+            label: 'Event page: mark on an event that has happened'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: dateLabel
+            label: 'Event page: "Date" label'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: timeLabel
+            label: 'Event page: "Time" label'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: locationLabel
+            label: 'Event page: "Location" label'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: priceLabel
+            label: 'Event page: "Price" label'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: eventDetailLink
+            label: 'Listings: link to an event'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: announcementDetailLink
+            label: 'Listings: link to an announcement'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: backToEvents
+            label: 'Link back to all events'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: backToAnnouncements
+            label: 'Link back to all announcements'
+            type: string
+            required: true
+            options:
+              maxlength: 40
+          - name: moreEventsHeading
+            label: 'Event page: "More events" heading'
+            type: string
+            required: true
+            options:
+              maxlength: 60
+          - name: mailingHeadingShort
+            label: 'Short mailing-list heading'
+            type: string
+            required: true
+            options:
+              maxlength: 120
+          - name: notFoundHeading
+            label: 'Page-not-found heading'
+            type: string
+            required: true
+            options:
+              maxlength: 80
+          - name: notFoundBody
+            label: 'Page-not-found text'
+            type: text
+            required: true
+            options:
+              maxlength: 400
+          - name: timezoneNote
+            label: 'Note about times'
+            type: text
+            required: true
+            description: Shown with event times. Says that all times are Oxford local time.
+            options:
+              maxlength: 240
+
+      # ---- Status -------------------------------------------------------
+      - name: status
+        label: Site status
+        type: object
+        required: true
+        fields:
+          - name: placeholderContent
+            label: Show the "placeholder content" notice in the footer
+            type: boolean
+            default: false
+            description: Untick this once the wording across the site is the society's own.
+          - name: placeholderNote
+            label: Wording of that notice
+            type: text
+            required: true
+            options:
+              maxlength: 240
+          - name: noindex
+            label: Hide the site from search engines
+            type: boolean
+            default: false
+            description: >-
+              Ticked while the site is being set up. Untick it at launch —
+              leaving it on keeps the site out of Google entirely.

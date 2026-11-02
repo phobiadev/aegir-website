@@ -27,3 +27,6 @@ npm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+
+# Verification builds (npm run verify:builds)
+dist-verify-*/

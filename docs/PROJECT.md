@@ -4,9 +4,11 @@ Living document. **Read this first in any new session, and update it as work
 progresses.**
 
 - **Project:** website for Aegir, an Oxford beer society
-- **Current stage:** 3 — **the complete local site is built** on real content
-  files; nothing is deployed
-- **Last updated:** 2026-10-29
+- **Current stage:** 5 — **release audit**: the site has been checked as a
+  prospective release, defects found and fixed, and the checks made
+  repeatable. Nothing is deployed. The full record is in
+  `docs/RELEASE-CHECK.md`.
+- **Last updated:** 2026-11-02
 
 ---
 
@@ -16,9 +18,12 @@ Build a website for the society covering **Home, About/Committee, Events,
 Announcements** and an **external mailing-list signup link**.
 
 Stage 1 was a design exploration — closed, B5 chosen. Stage 2 promoted B5 to the
-real routes. **Stage 3, this one, is the whole site**: every page, every route,
-and a content layer the society (and later a CMS) can edit without touching a
-template.
+real routes. Stage 3 was the whole site: every page, every route, and a content
+layer the society could edit without touching a template. Stage 4 pointed the
+hosted Pages CMS at that content layer — a form for every field, with nothing
+new invented for the CMS to edit. **Stage 5, this one, audits the lot as a
+prospective release**: defects fixed, the checks made repeatable, and the site
+finally looked at in a browser.
 
 | | |
 |---|---|
@@ -29,8 +34,12 @@ template.
 ### Explicitly out of scope
 
 No remote repository, no publishing, no domain purchase. No newsletter backend,
-no ticketing, no user accounts, no scheduled publication. The hosted Pages CMS
-is the **next** stage; this stage prepares for it.
+no ticketing, no user accounts, no scheduled publication.
+
+**Pages CMS is used as the hosted service at app.pagescms.org.** It is not
+self-hosted, and no login, admin UI or auth code has been written — that would
+be a second application to maintain for no gain. The GitHub App connection is
+an account-level step that cannot be done from here; it is listed in §9.
 
 ---
 
@@ -78,13 +87,27 @@ npm run dev:fixtures     # same, with the example content loaded
 | `/404.html` | Not found — every section, plus what is on next |
 
 ```bash
-npm run validate         # check content against the schemas (see §5)
+npm run validate         # check content and .pages.yml against the schemas (§5)
+npm run typecheck        # astro check — types across templates and scripts
+npm test                 # unit tests: dates, grouping, base paths, content rules
 npm run build            # static output into dist/
 npm run build:fixtures   # the same build with the example content
 npm run build:pages      # build for a GitHub Pages project path
-npm run check            # validate, then build
 npm run preview          # serve the built output
+
+npm run check            # THE GATE: validate -> typecheck -> test -> verify:builds
+npm run verify:builds    # build all four destinations and scan each output
+npm run check:output     # scan an existing dist/ for unbased or broken URLs
+npm run inspect          # drive a headless browser over a running preview
 ```
+
+`npm run check` is what to run before committing or deploying. `README.md` has
+the short version of all of this for someone arriving at the repository.
+
+**`astro preview` is a managed daemon in Astro 7.** It survives `pkill` and
+reuses a running server, so after rebuilding use `npx astro preview stop`
+before starting it again — otherwise the preview silently serves the previous
+build. This cost a round of browser checks in stage 5.
 
 **With no events and no announcements** — which is the state of `content/` right
 now — the build logs two `glob-loader` warnings and every listing renders its
@@ -105,6 +128,13 @@ the first real file lands.
 Dependencies: Astro, one `@fontsource-variable` package (Archivo), `zod` (shared
 schemas, already in Astro's tree) and `@astrojs/markdown-satteri` (Astro 7's
 Markdown processor, likewise — declared because the config imports it directly).
+
+**Development only**, added in stage 5 and shipped in nothing: `@astrojs/check`
+and `typescript` (`npm run typecheck`), `@types/node`, and `playwright`
+(`npm run inspect`). Playwright is there because the machine's own browsers
+cannot do it — Chrome 121 segfaults on macOS 26 and Brave's headless mode hangs
+— and without it the site could not be looked at. Tests use Node's built-in
+runner, so there is no test framework.
 
 ### Astro 7 notes for future sessions
 
@@ -240,6 +270,23 @@ involves; treat the folder as B's design of record.
 
 ## 7. Decisions and why
 
+### Stage 5 — the release audit
+
+| Decision | Reasoning |
+|---|---|
+| Blanks are stripped once per schema, not handled field by field | Pages CMS writes `price: ''` when an editor CLEARS a field rather than dropping the key, and every optional rule is `min(1)` or a date — so a cleared field failed the build. One `withoutBlanks` pass in `editable()` means there is a single answer to "what does a cleared field mean" instead of one per field, and no rule has to know about it. This was the likeliest way for the society to break its own site. |
+| An impossible date is refused, not rolled forward | `2026-11-31` matched the shape regex and `Date.UTC` quietly turned it into 1 December. A slip that ships as a real, wrong date is worse than one that fails validation with the reason. November having thirty days is exactly the mistake worth catching. |
+| A date-only `end` names the last DAY | Its instant is that day's midnight, so using it directly dropped a trip written `start: 2026-07-10` / `end: 2026-07-12` at the *start* of the 12th. Now anything without an end TIME runs to the next Oxford midnight — the same rule a start with no time already followed. |
+| Content pictures carry `width`/`height`, read from the file | They are plain `<img>` elements pointing at uploads, so nothing knew their size and the browser reserved no space: measured CLS 0.14–0.43 on the event and announcement pages, which is a visible shove. `src/lib/image-size.mjs` reads the header off the file at build time. A format it cannot read gets no attributes rather than a wrong guess. |
+| `height: auto` added to the reset | Not optional once images carry those attributes: the HTML `height` is a presentational hint that BEATS `aspect-ratio`, so the 4:3 thumbnails were suddenly drawn at the file's full pixel height. Found by re-measuring after the fix, not by reasoning. |
+| Markdown pictures get their own Satteri plugin | `hast-base-url.mjs` returns null at a domain root, so it could not carry the sizing. `hast-image-attrs.mjs` is a second plugin, running first so it sees the plain `/media/...` path before the base is prefixed. Two plugins, one job each. |
+| `button.is-inactive`, not `.btn.is-inactive` | The header and mobile-menu signup buttons are styled `.bar__cta` / `.sheet__cta` and carry no `.btn`, so two of the six were `disabled` while looking completely live — the most prominent one on a phone. The active case renders an `<a>`, so the element selector is exactly the inactive one and clears `.bar__cta` on specificity. |
+| Tests use Node's built-in runner | `node --test` with no framework. The things worth testing — date classification, the browser regrouping, the base-path rule, the content rules — are pure functions and twenty lines of DOM, and a test framework would have been the largest dependency in the project. |
+| `urls.ts` is verified against built output, not unit-tested | It reads `import.meta.env.BASE_URL`, which only exists inside a build. A unit test would have had to copy its regex and would then prove the copy right. `scripts/check-output.mjs` scans the real `dist/` instead, which also catches the Markdown path and broken links. |
+| `verify:builds` builds all four destinations | Real content and fixtures, each at a root and under a project path. The base path, the Markdown rewriting and the draft filtering are each easy to break in only one of the four, and a single build proves nothing about the other three. |
+| Playwright as a dev dependency | The machine's own browsers cannot do it: Chrome 121 segfaults on macOS 26.5, Brave's headless mode hangs. Without it the site could not be looked at at all, which was stage 3's loudest gap. It ships in nothing. |
+| `backup/` excluded from `tsconfig.json` | It is a reference original whose imports are deliberately broken — it reads a stage-1 data module that no longer exists at that path. Ten type errors that are correct to have, and would otherwise drown the ones that matter. |
+
 ### Stage 3 — the complete site
 
 | Decision | Reasoning |
@@ -276,7 +323,7 @@ involves; treat the folder as B's design of record.
 | Plain-text "Aegir" wordmark beside a round logo placeholder | The real emblem has not been supplied and the brief forbids inventing a substitute. One settings value replaces every instance. |
 | B5 promoted to `Site.astro` with scope `.site` | The CSS scope `.dir-b5` was meaningless once there was one design. |
 | Direction B kept as files, not only in history | Requested. Recovering a design from a diff across six rounds of churn is not a five-minute job. |
-| The site is `noindex` | It carries placeholder copy and an inert signup button. Flagged in §8 so it is removed deliberately at launch. |
+| The site is `noindex` | It carries placeholder copy and an inert signup button. Flagged in §9 so it is removed deliberately at launch. |
 | Shared styles live in the layout, never in a page | A real bug in round 6, not a tidy-up: a page's `is:global` styles ship with that page alone, so shared rules defined in a homepage left every other page unstyled. |
 | Round 5: cover photograph cropped to `center 25%` | The subject's face sits about 22% down the frame. Only the Direction B backup uses it now. |
 | Round 5: `.topbar__logo` rules narrowed to `img.` | They set `height: auto`, which also matched the `LogoSlot` span and rendered the round placeholder as an oval. |
@@ -284,9 +331,16 @@ involves; treat the folder as B's design of record.
 
 ### Accessibility
 
-Every foreground/background pair is checked against WCAG AA, including the ones
-added in stage 3 (the inactive button, the cancellation notice, the new page
-headers and the dark mailing cards). **All pass**, with the lowest at 4.56:1.
+Every foreground/background pair is checked against WCAG AA. Stage 3 checked
+the palette and reported that all pass; **stage 5 found one pair the palette
+check had missed**, because it only appears in combination:
+
+> `.rows--next > li:first-child .row` paints the lead event row AMBER, and
+> `.row__meta` was `--ink-faint` — 3.18:1, below AA for 12px text. It is now
+> `--ink-soft` on that row (4.69:1). Checking a palette is not the same as
+> checking what ends up on top of what; stage 5's `npm run inspect` now
+> measures the **rendered** colour of real text against the real ground
+> behind it, on every page at every width, which is what caught it.
 
 - The brand amber `#F0BC2E` is kept wherever it sits on ink or behind dark text.
   For small text on any cream the darkened cut **`#7F6316`** is used, which
@@ -296,7 +350,13 @@ headers and the dark mailing cards). **All pass**, with the lowest at 4.56:1.
   It must not be taken onto any darker ground.
 - The inactive signup button is drawn at `opacity: 0.75`, which was checked
   rather than assumed: ink on amber falls to 5.41:1 on cream and 6.28:1 inside
-  the dark card, both clear.
+  the dark card, both clear. **Stage 5 fixed which buttons get that
+  treatment**: the rule was `.btn.is-inactive`, and the header and mobile-menu
+  signup buttons are styled with `.bar__cta` / `.sheet__cta` and carry no
+  `.btn`, so two of the six were disabled while looking completely live. The
+  rule is now `button.is-inactive` — the active case renders an `<a>`, so the
+  element selector is exactly the inactive one and beats `.bar__cta` on
+  specificity.
 - Blank slots and the logo placeholder take their section's `color` at full
   strength for the label, mixing it down only for the hairline and hatch.
 - Every event picture and committee photograph requires alternative text — the
@@ -306,15 +366,23 @@ headers and the dark mailing cards). **All pass**, with the lowest at 4.56:1.
 ## 8. Project structure
 
 ```
+README.md                           how to run, build and release it
 docs/PROJECT.md                     this file
 docs/CONTENT.md                     the editor's guide to content/
+docs/EDITOR-GUIDE.md                the same, for whoever uses the hosted CMS
+docs/RELEASE-CHECK.md               the release audit: evidence and what is left
 docs/ASSETS.md                      asset inventory, roles, flags
+RELEASES.md                         what each release tag contains
 reference-assets/                   supplied originals — GITIGNORED, local only
 public/media/                       web-ready copies — committed
 public/favicon*, apple-touch-icon   derived from the pint roundel
 content/                            ALL editable content — see §5 and CONTENT.md
 fixtures/content/                   example content, AEGIR_FIXTURES=1 only
 scripts/validate-content.mjs        npm run validate
+scripts/check-output.mjs            npm run check:output — scan a built dist/
+scripts/verify-builds.mjs           npm run verify:builds — all four destinations
+scripts/inspect-pages.mjs           npm run inspect — the browser checks
+tests/                              node --test: dates, regrouping, URLs, schemas
 src/content.config.ts               the three collections, and the fixtures switch
 src/config/artwork.ts               artwork paths + SAMPLED background colours
 src/lib/schemas.ts                  one definition of every content rule
@@ -323,6 +391,8 @@ src/lib/datetime.ts                 Europe/London, GMT/BST, cutoffs, formatting
 src/lib/urls.ts                     base-aware internal URLs
 src/lib/hast-base-url.mjs           the same rule, applied inside Markdown
 src/lib/regroup.ts                  the browser's only date logic
+src/lib/hast-image-attrs.mjs        size + lazy loading for Markdown pictures
+src/lib/image-size.mjs              intrinsic pixel size, read from public/
 src/lib/excerpt.ts                  plain-text summaries for cards and the feed
 src/components/                     EventRow, AnnouncementCard, MailingListButton, LogoSlot
 src/layouts/Site.astro              head, header, mobile menu, footer, all shared styles
@@ -364,29 +434,62 @@ below requires a code change beyond the file named.
    and sharing metadata currently resolve against `http://localhost:4321`, which
    is correct locally and wrong anywhere else.
 
-### Known limitation of this stage
+### Known limitations of this stage
 
-**No screenshots were captured.** The Chrome extension was declined, and
-headless capture is not possible on this machine — the installed Chrome 121
-segfaults on macOS 25.5 and Brave's headless mode hangs. The site was verified
-by validating the content, building both the real and the fixture content,
-serving it, requesting every route, and checking the rendered HTML, every link
-and image path (at a domain root and under a project path), the draft exclusion,
-the time zone handling, the regrouping logic and every contrast pair
-programmatically. **It has not been viewed by a human or a browser.** Responsive
-behaviour in particular is reasoned-about, not observed. Please open it and look.
+**The site has now been viewed in a browser.** Stage 3's note that it had not
+is no longer true. `npm run inspect` drives a headless Chromium over every
+route at 390, 768 and 1440px and checks sideways scrolling, text overflow,
+image proportions, layout shift, keyboard reachability, focus rings, the mobile
+menu, rendered colour contrast and the no-JavaScript layout. The machine's own
+browsers still cannot do it — Chrome 121 segfaults on macOS 26.5 and Brave's
+headless mode hangs with no output — so Playwright's own Chromium is a dev
+dependency.
 
----
+What that still is not:
+
+- **One engine.** Chromium only. Safari and Firefox are not covered, and
+  WebKit is the one that matters most for iPhone readers.
+- **One device shape each.** Three viewport widths at a 1× scale, not real
+  phones, not a notch, not a high-DPI screen.
+- **No assistive technology.** Focus order, focus rings, landmarks, alt text
+  and `aria-*` are checked structurally; no screen reader has read the site.
+- **No human judgement of the design.** The checks catch broken, not ugly.
+  Someone should still look at it.
+
+Everything requiring an external account — the hosted CMS sign-in, the mailing
+list, a deployment — is listed in `docs/RELEASE-CHECK.md` and cannot be done
+from here.
 
 ## 10. Next steps
 
-1. Fill in the content above — events and announcements first; they are what the
-   site is for.
-2. Wire up the hosted Pages CMS against `content/`. The structure is already
-   what it expects: one Markdown file per entry with a flat frontmatter block,
-   two JSON files for settings and the committee, and image paths that are
-   ordinary `/media/...` URLs. `src/lib/schemas.ts` is the field list to mirror
-   in the CMS configuration.
-3. Configure GitHub Pages deployment. `BASE_PATH` and `SITE_URL` are the two
-   values to set; `npm run build:pages` is the project-path build. This is also
-   when `status.noindex` comes out.
+Nothing below is a code change. The site is technically ready; it is waiting on
+material and on account-level steps. `docs/RELEASE-CHECK.md` is the working
+list with the evidence behind each line.
+
+1. **Fill in the content** above — events and announcements first; they are
+   what the site is for. The About text and the society details are with the
+   presidents.
+2. **Sign in to the hosted CMS.** `.pages.yml` is written and checked by
+   `npm run validate`, but app.pagescms.org has never been connected to this
+   repository: that needs the GitHub App installed on an account, which cannot
+   be done from here. Until then the CMS configuration is correct on paper and
+   unexercised in practice.
+3. **Configure GitHub Pages deployment.** `BASE_PATH` and `SITE_URL` are the
+   two values to set; `npm run build:pages` is the project-path build, and
+   `npm run verify:builds` already proves both destinations are correct. This
+   is also when `status.noindex` comes out and
+   `status.placeholderContent` goes false.
+
+## 11. Releases
+
+Every state that passed `npm run check` is tagged `release-<n>-<date>` and
+described in `RELEASES.md`. To find the last good one and go back to it:
+
+```bash
+git tag -l 'release-*' | tail -1
+git switch -c rollback <tag>
+npm ci && npm run check
+```
+
+Tags are local — there is no remote yet. `RELEASES.md` records what each one
+contains and what was verified, so the tag is not the only record.

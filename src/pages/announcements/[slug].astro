@@ -9,6 +9,7 @@ import { excerpt } from '../../lib/excerpt.ts';
 import { formatFullDate, machineDate } from '../../lib/datetime.ts';
 import { artwork } from '../../config/artwork.ts';
 import { url } from '../../lib/urls.ts';
+import { imageSize } from '../../lib/image-size.mjs';
 
 export async function getStaticPaths() {
   const announcements = await getAnnouncements();
@@ -23,6 +24,8 @@ const { announcement } = Astro.props;
 const { title, date, image, imageAlt } = announcement.data;
 const { Content } = await render(announcement);
 const summary = excerpt(announcement.body, 160);
+// Read off the file, so the space is reserved before the picture arrives.
+const photo = imageSize(image);
 ---
 
 <Site
@@ -59,7 +62,11 @@ const summary = excerpt(announcement.body, 160);
     <div class="shell">
       {image && imageAlt && (
         <figure class="post__photo">
-          <img src={url(image)} alt={imageAlt} loading="lazy" decoding="async" />
+          <img
+            src={url(image)} alt={imageAlt}
+            width={photo?.width} height={photo?.height}
+            loading="lazy" decoding="async"
+          />
         </figure>
       )}
       <div class="prose"><Content /></div>

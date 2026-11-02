@@ -105,7 +105,7 @@ const paperVars = `.site {
       <div class="shell bar__inner">
         <a href={url('/')} class="bar__brand">
           {branding.logo
-            ? <img class="bar__logo" src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width} height={branding.logo.height} />
+            ? <img class="bar__logo" src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width ?? undefined} height={branding.logo.height ?? undefined} />
             : <LogoSlot size="2.375rem" label="Logo" class="bar__logo" />}
           <span class="bar__wordmark">{branding.wordmark}</span>
         </a>
@@ -130,7 +130,7 @@ const paperVars = `.site {
         <button class="sheet__close" type="button" aria-label="Close menu">&times;</button>
         <div class="sheet__brand">
           {branding.logo
-            ? <img src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width} height={branding.logo.height} />
+            ? <img src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width ?? undefined} height={branding.logo.height ?? undefined} />
             : <LogoSlot size="3.25rem" label="Logo" />}
           <span class="sheet__wordmark">{branding.wordmark}</span>
         </div>
@@ -149,7 +149,7 @@ const paperVars = `.site {
       <div class="shell foot__inner">
         <div class="foot__brand">
           {branding.logo
-            ? <img class="foot__logo" src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width} height={branding.logo.height} />
+            ? <img class="foot__logo" src={url(branding.logo.src)} alt={branding.logo.alt} width={branding.logo.width ?? undefined} height={branding.logo.height ?? undefined} />
             : <LogoSlot size="4.5rem" label="Logo" class="foot__logo" />}
           <div>
             <p class="foot__mark">{settings.name}</p>
@@ -194,7 +194,9 @@ const paperVars = `.site {
         document.body.style.overflow = open ? 'hidden' : '';
         if (open) close?.focus(); else burger.focus();
       }
-      burger?.addEventListener('click', () => setOpen(sheet?.hidden ?? true));
+      // `hidden` is typed `boolean | 'until-found'`, so coerce it: anything
+      // hidden means the next click opens the menu.
+      burger?.addEventListener('click', () => setOpen(Boolean(sheet?.hidden)));
       close?.addEventListener('click', () => setOpen(false));
       sheet?.addEventListener('click', (e) => { if (e.target === sheet) setOpen(false); });
       sheet?.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
@@ -309,6 +311,9 @@ const paperVars = `.site {
   .site .row:hover { background: var(--shade); }
   /* The next event up reads as the torn-off ticket the design is built around. */
   .site .rows--next > li:first-child .row { background: var(--amber); }
+  /* --ink-faint is only 3.18:1 on amber, so the lead row's meta line steps up
+     to --ink-soft (4.69:1). The hierarchy is unchanged; it just clears AA. */
+  .site .rows--next > li:first-child .row__meta { color: var(--ink-soft); }
   .site .rows--next > li:first-child .row:hover { background: var(--ink); color: var(--paper); }
   .site .rows--next > li:first-child .row:hover .row__date { border-right-color: var(--paper); }
   .site .rows--next > li:first-child .row:hover .row__summary,

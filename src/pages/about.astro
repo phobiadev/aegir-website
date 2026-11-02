@@ -12,6 +12,7 @@ import MailingListButton from '../components/MailingListButton.astro';
 import { committee, text } from '../lib/content.ts';
 import { artwork } from '../config/artwork.ts';
 import { url } from '../lib/urls.ts';
+import { imageSize } from '../lib/image-size.mjs';
 
 const page = await getEntry('pages', 'about');
 if (!page) throw new Error('content/pages/about.md is missing — the About page cannot be built.');
@@ -53,7 +54,11 @@ const { title, description, heading, lead } = page.data;
           {committee.map((person) => (
             <li class="crew__item">
               {person.photo && person.photoAlt && (
-                <img class="crew__photo" src={url(person.photo)} alt={person.photoAlt} loading="lazy" decoding="async" />
+                <img
+                  class="crew__photo" src={url(person.photo)} alt={person.photoAlt}
+                  width={imageSize(person.photo)?.width} height={imageSize(person.photo)?.height}
+                  loading="lazy" decoding="async"
+                />
               )}
               <p class="crew__role">{person.role}</p>
               <p class="crew__holder">{person.name}</p>

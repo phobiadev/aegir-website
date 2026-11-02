@@ -12,6 +12,12 @@
  *   2. An image path that does not exist in `public/`, which a build will
  *      happily ship as a broken picture.
  *
+ * It also checks `.pages.yml`, the Pages CMS configuration, against the
+ * repository: that it parses, that every path it offers an editor actually
+ * exists, and that every location the site reads is reachable from the CMS.
+ * That is the third side of the triangle — CMS, schema, templates — and the
+ * one that otherwise drifts silently.
+ *
  * It exits non-zero on the first failure, so `npm run check` stops before a
  * build. Warnings do not fail anything.
  */
@@ -56,7 +62,16 @@ function report(file, result) {
   return null;
 }
 
-/** The one check a schema cannot make: an unquoted date with an offset. */
+/**
+ * The one check a schema cannot make: an unquoted date with an offset.
+ *
+ * An unquoted date WITHOUT an offset is safe either way, which matters because
+ * that is exactly what Pages CMS writes — `start: 2026-11-12 19:30`, no
+ * quotes. Both routes through YAML land on the same instant: without seconds
+ * it stays a string and is read as a London wall clock, and with seconds YAML
+ * hands over a UTC Date whose digits are still the ones that were typed. So
+ * there is nothing to warn about. An unquoted offset is the only broken form.
+ */
 function checkRawDates(file, raw) {
   const frontmatter = raw.split(/^---\s*$/m)[1] ?? '';
   for (const line of frontmatter.split('\n')) {
@@ -71,8 +86,6 @@ function checkRawDates(file, raw) {
           `the site sees it. Write it as "${value}" in quotes, or drop the offset and give ` +
           `the Oxford local time.`,
       );
-    } else if (!quoted && /[T ]\d{2}:\d{2}/.test(value)) {
-      warn(file, `${field} would be clearer quoted: ${field}: "${value}"`);
     }
   }
 }
@@ -140,6 +153,146 @@ validateJson(join(root, 'content/settings/site.json'), settingsSchema, (file, da
 validateJson(join(root, 'content/settings/committee.json'), committeeSchema, (file, people) => {
   people.forEach((person, index) => checkMedia(file, person.photo, `[${index}].photo`));
 });
+
+/* ------------------------------------------------------------------------ *
+ * .pages.yml — the Pages CMS configuration
+ *
+ * The CMS is the third thing that has to agree with the schemas and the
+ * templates, and it is the only one with no build step to catch a mistake: a
+ * wrong path here does not break anything until an editor opens the editor and
+ * finds an empty screen. So the paths are checked here instead.
+ * ------------------------------------------------------------------------ */
+
+/** Every location the site actually reads, and where its rules live. */
+const EDITABLE = [
+  ['content/events', 'events (one Markdown file per event)'],
+  ['content/announcements', 'announcements'],
+  ['content/pages/about.md', 'the About page'],
+  ['content/settings/committee.json', 'committee profiles'],
+  ['content/settings/site.json', 'site settings'],
+];
+
+/** Walk a field tree, including nested object/block fields. */
+function* everyField(fields) {
+  for (const field of fields ?? []) {
+    yield field;
+    yield* everyField(field.fields);
+    for (const block of field.blocks ?? []) yield* everyField(block.fields);
+  }
+}
+
+/** Flatten `content`, following `group` entries into their items. */
+function* everyEntry(entries) {
+  for (const entry of entries ?? []) {
+    if (entry.type === 'group') yield* everyEntry(entry.items);
+    else yield entry;
+  }
+}
+
+function validatePagesConfig() {
+  const file = '.pages.yml';
+  const path = join(root, file);
+  checked += 1;
+  if (!existsSync(path)) {
+    return fail(file, 'is missing — the hosted Pages CMS has nothing to work from.');
+  }
+
+  let config;
+  try {
+    // Reusing Astro's own frontmatter reader rather than adding a YAML
+    // dependency: the CMS config is just a YAML document.
+    ({ frontmatter: config } = parseFrontmatter(`---\n${readFileSync(path, 'utf8')}\n---\n`));
+  } catch (error) {
+    return fail(file, `is not valid YAML — ${error.message}`);
+  }
+
+  const mediaSources = Array.isArray(config.media)
+    ? config.media
+    : config.media
+      ? [typeof config.media === 'string' ? { input: config.media, output: `/${config.media}` } : config.media]
+      : [];
+  if (!mediaSources.length) fail(file, 'has no `media`, so no image can be uploaded or picked.');
+
+  const mediaByName = new Map();
+  for (const [index, source] of mediaSources.entries()) {
+    const at = source.name ? `media "${source.name}"` : `media[${index}]`;
+    if (source.name) mediaByName.set(source.name, source);
+    if (!source.input || !source.output) {
+      fail(file, `${at} needs both an input and an output path.`);
+      continue;
+    }
+    if (!existsSync(join(root, source.input))) {
+      fail(file, `${at} uploads into ${source.input}, which does not exist in the repository.`);
+    }
+    // The stored value must be a plain site path. A base path or the
+    // repository name written in here would be baked into every image
+    // reference and would break the other kind of build.
+    if (!source.output.startsWith('/')) {
+      fail(file, `${at} output "${source.output}" must begin with "/".`);
+    }
+    if (!`${source.input}/`.startsWith('public/')) {
+      fail(file, `${at} uploads into ${source.input}, which is not served — it must be under public/.`);
+    } else if (`public${source.output}` !== source.input) {
+      fail(
+        file,
+        `${at} maps ${source.input} to ${source.output}, but the site serves public/ at the root, ` +
+          `so the output should be /${source.input.replace(/^public\//, '')}.`,
+      );
+    }
+  }
+
+  const entries = [...everyEntry(config.content)];
+  if (!entries.length) fail(file, 'has no `content`, so there is nothing to edit.');
+
+  const configured = new Set();
+  for (const entry of entries) {
+    const at = `content "${entry.name ?? '(unnamed)'}"`;
+    if (!entry.name) fail(file, `${at} has no name.`);
+    if (!entry.path) {
+      fail(file, `${at} has no path.`);
+      continue;
+    }
+    configured.add(entry.path.replace(/\/+$/, ''));
+    if (!existsSync(join(root, entry.path))) {
+      fail(file, `${at} points at ${entry.path}, which does not exist.`);
+      continue;
+    }
+    const isDirectory = statSync(join(root, entry.path)).isDirectory();
+    if (entry.type === 'collection' && !isDirectory) {
+      fail(file, `${at} is a collection, so ${entry.path} must be a folder.`);
+    }
+    if (entry.type === 'file' && isDirectory) {
+      fail(file, `${at} is a single file, so ${entry.path} must not be a folder.`);
+    }
+
+    for (const field of everyField(entry.fields)) {
+      if (field.options?.media && typeof field.options.media === 'string' && !mediaByName.has(field.options.media)) {
+        fail(file, `${at} field "${field.name}" uses media "${field.options.media}", which is not defined.`);
+      }
+      const browse = field.options?.path;
+      if (typeof browse !== 'string') continue;
+      if (!existsSync(join(root, browse))) {
+        fail(file, `${at} field "${field.name}" browses ${browse}, which does not exist.`);
+      }
+      const source = typeof field.options.media === 'string' ? mediaByName.get(field.options.media) : mediaSources[0];
+      if (source?.input && !browse.startsWith(source.input)) {
+        fail(
+          file,
+          `${at} field "${field.name}" browses ${browse}, which is outside the media folder ` +
+            `${source.input} — Pages CMS will quietly ignore it.`,
+        );
+      }
+    }
+  }
+
+  for (const [location, what] of EDITABLE) {
+    if (!configured.has(location)) {
+      fail(file, `nothing here edits ${location} — ${what} would be invisible in the CMS.`);
+    }
+  }
+}
+
+validatePagesConfig();
 
 const where = useFixtures ? `${contentRoot} (fixtures)` : contentRoot;
 for (const warning of warnings) console.warn(`  warning  ${warning}`);
