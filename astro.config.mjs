@@ -19,8 +19,12 @@ import { hastImageAttrs } from './src/lib/hast-image-attrs.mjs';
  * `npm run build:pages` is the first of those. SITE_URL is used only for
  * canonical links and sharing metadata; nothing is deployed from here.
  */
-const SITE_URL = process.env.SITE_URL ?? 'http://localhost:4321';
-const BASE_PATH = process.env.BASE_PATH ?? '/';
+// `||` rather than `??` on purpose: GitHub's configure-pages action reports an
+// EMPTY base_path once a custom domain is in use, and an empty string is not
+// null — `??` would hand Astro `base: ''` and every internal link would break
+// on the day the domain went live.
+const SITE_URL = process.env.SITE_URL || 'http://localhost:4321';
+const BASE_PATH = process.env.BASE_PATH || '/';
 
 export default defineConfig({
   output: 'static',
