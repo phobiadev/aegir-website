@@ -3,24 +3,21 @@
   "tagline": "The Oxford beer society",
   "description": "Aegir is a beer society in Oxford. Tastings, brewery trips and socials through the year.",
   "branding": {
-    "logo": null,
     "wordmark": "Aegir",
     "shareImage": {
       "src": "/media/graphics/share-bottle-walk.jpg",
-      "alt": "Hand-drawn illustration of a figure striding along with a beer bottle for a head.",
+      "alt": "Big-beer-walk",
       "width": 1200,
       "height": 630
     }
   },
   "mailingList": {
-    "url": null,
     "heading": "Mailing list heading",
     "body": "Short paragraph placeholder — one or two lines about what goes out on the mailing list and how often.",
     "cta": "Join the mailing list",
     "unavailableNote": "The signup link has not been supplied yet, so this button is inactive."
   },
   "contact": {
-    "email": null,
     "links": [
       {
         "label": "Instagram",
