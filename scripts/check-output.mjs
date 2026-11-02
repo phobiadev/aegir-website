@@ -23,10 +23,17 @@
  * the offending URL and the file it came from.
  */
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, basename } from 'node:path';
+import { parseFrontmatter } from '@astrojs/internal-helpers/frontmatter';
 
-const [dir = 'dist', rawBase = '/'] = process.argv.slice(2);
+const args = process.argv.slice(2);
+// `--fixtures` says the build under test was made from fixtures/content/, which
+// is the only content set that deliberately contains unpublished entries. It
+// turns on the coverage assertions below.
+const fromFixtures = args.includes('--fixtures');
+const [dir = 'dist', rawBase = '/'] = args.filter((a) => !a.startsWith('--'));
 const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
+const contentRoot = fromFixtures ? 'fixtures/content' : 'content';
 
 if (!existsSync(dir)) {
   console.error(`check-output: ${dir} does not exist — run a build first.`);
@@ -84,10 +91,22 @@ for (const path of pages) {
     }
   }
 
-  // The two Markdown cases, which go through hast-base-url.mjs rather than
-  // urls.ts. Their presence is asserted so this check cannot pass vacuously.
-  if (/<img[^>]+src="[^"]*photo-garden-dusk\.jpg"/.test(html)) markdownImageSeen = true;
-  if (/An inline link to <a href="[^"]*events\/"/.test(html)) markdownLinkSeen = true;
+  // The two Markdown cases, which go through hast-image-attrs.mjs and
+  // hast-base-url.mjs rather than urls.ts. Their presence is asserted, so this
+  // check cannot pass vacuously.
+  //
+  // Scoped to the rendered Markdown body. Matching the whole page was wrong:
+  // an event with a frontmatter `image` renders a template <img> with the same
+  // filename, so the check reported a Markdown image on a page that had none.
+  // Bounded by the prose div's own closing tag, not the enclosing section: an
+  // event page's sidebar sits inside the same section and has both an <img>
+  // and links of its own, which also read as a false positive. A Markdown
+  // body contains no <div> of its own, so the first </div> is the right edge.
+  for (const body of html.matchAll(/class="prose"[^>]*>([\s\S]*?)<\/div>/g)) {
+    const prose = body[1];
+    if (/<img[^>]+src="\/[^"]+"/.test(prose)) markdownImageSeen = true;
+    if (/<a[^>]+href="\/[^"]+"/.test(prose)) markdownLinkSeen = true;
+  }
 
   /* ---- 3: canonical and sharing URLs ---- */
   for (const [, value] of html.matchAll(META_URL)) {
@@ -101,20 +120,82 @@ for (const path of pages) {
 
 if (!internalSeen) fail(dir, 'no internal URLs were found at all — the scan would pass vacuously.');
 
+
 /* ---- 4: nothing unpublished anywhere in the output ---- */
 
-const FORBIDDEN = [
-  ['must never appear', 'a draft entry'],
-  ['Parked event', 'an underscore-prefixed file'],
-  ['draft-event', 'a draft slug'],
-  ['draft-announcement', 'a draft slug'],
-  ['parked-event', 'an underscore-prefixed slug'],
-];
+/**
+ * What must NOT be in the output is derived from the source, not hard-coded.
+ *
+ * It used to be a fixed list of strings. That list passed happily if the
+ * fixtures it named were deleted — the check proved nothing and still went
+ * green, which is worse than not having it. Now the unpublished entries are
+ * read from the content tree the build came from, so adding a draft covers it
+ * automatically and removing every draft fails loudly (see below).
+ */
+function unpublishedEntries(root) {
+  const found = [];
+  for (const kind of ['events', 'announcements']) {
+    const dirPath = join(root, kind);
+    if (!existsSync(dirPath)) continue;
+    for (const name of readdirSync(dirPath)) {
+      if (!name.endsWith('.md')) continue;
+      const slug = basename(name, '.md');
+      const raw = readFileSync(join(dirPath, name), 'utf8');
+      let data = {};
+      try { ({ frontmatter: data } = parseFrontmatter(raw)); } catch { /* reported by validate */ }
+      const why = name.startsWith('_')
+        ? 'an underscore-prefixed file'
+        : data.draft === true
+          ? 'a draft'
+          : null;
+      if (why) found.push({ slug, title: String(data.title ?? ''), why, file: `${kind}/${name}` });
+    }
+  }
+  return found;
+}
+
+const unpublished = unpublishedEntries(contentRoot);
+
 for (const path of files) {
   if (!/\.(html|xml|js|css|json)$/.test(path)) continue;
   const text = readFileSync(path, 'utf8');
-  for (const [needle, what] of FORBIDDEN) {
-    if (text.includes(needle)) fail(relative(process.cwd(), path), `contains ${what} ("${needle}").`);
+  for (const entry of unpublished) {
+    // The slug would betray a leaked route or link; the title would betray a
+    // leaked listing row, feed item or meta tag.
+    for (const needle of [entry.slug, entry.title].filter((n) => n && n.length > 3)) {
+      if (text.includes(needle)) {
+        fail(
+          relative(process.cwd(), path),
+          `contains ${entry.why} from ${contentRoot}/${entry.file} ("${needle}").`,
+        );
+      }
+    }
+  }
+}
+
+/*
+ * A check that cannot fail is not a check.
+ *
+ * Everything below asserts that the INPUT needed to make a check meaningful
+ * was actually present. Without these, trimming the fixtures would quietly
+ * turn the draft-exclusion and Markdown-rewriting checks into no-ops, and the
+ * suite would stay green while proving nothing. This is the guarantee that
+ * fixtures/README.md relies on.
+ */
+if (fromFixtures) {
+  const drafts = unpublished.filter((e) => e.why === 'a draft');
+  const parked = unpublished.filter((e) => e.why === 'an underscore-prefixed file');
+  if (!drafts.length) {
+    fail(contentRoot, 'contains no `draft: true` entry, so draft exclusion is untested here.');
+  }
+  if (!parked.length) {
+    fail(contentRoot, 'contains no underscore-prefixed file, so loader exclusion is untested here.');
+  }
+  if (!markdownImageSeen) {
+    fail(dir, 'no Markdown-embedded image reached the output, so image rebasing is untested here.');
+  }
+  if (!markdownLinkSeen) {
+    fail(dir, 'no Markdown-embedded link reached the output, so link rebasing is untested here.');
   }
 }
 
@@ -129,6 +210,9 @@ if (errors.length) {
 const notes = [];
 if (markdownImageSeen) notes.push('a Markdown-embedded image');
 if (markdownLinkSeen) notes.push('a Markdown-embedded link');
+if (unpublished.length) {
+  notes.push(`${unpublished.length} unpublished entr${unpublished.length === 1 ? 'y' : 'ies'} kept out`);
+}
 console.log(
   `check-output OK — ${dir} (base "${base}"): ${internalSeen} internal URLs across ` +
     `${pages.length} page(s), all based and all resolving; no unpublished content.` +

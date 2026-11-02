@@ -47,7 +47,14 @@ for (const target of targets) {
     continue;
   }
 
-  const check = run('node', ['scripts/check-output.mjs', target.dir, target.base]);
+  const check = run('node', [
+    'scripts/check-output.mjs',
+    target.dir,
+    target.base,
+    // Fixture builds carry the drafts and Markdown media that make the
+    // exclusion and rebasing checks meaningful, so they are asserted there.
+    ...(target.env.AEGIR_FIXTURES ? ['--fixtures'] : []),
+  ]);
   if (check.status !== 0) failed += 1;
 }
 

@@ -84,6 +84,15 @@ The scanner (`scripts/check-output.mjs`) was given a negative control — the
 root build checked against a project base — and reported 442 failures, so it
 is not passing vacuously.
 
+**Strengthened after the audit (2026-11-02).** The draft-exclusion and
+Markdown checks named their fixtures by hand, so deleting those fixtures made
+the checks pass while proving nothing. They now derive the unpublished entries
+from the content tree and assert the cover exists — verified by deleting the
+fixtures and watching the checks fail. Scoping the Markdown check to the
+rendered body also exposed a false positive in the audit's own tooling: it had
+been matching a frontmatter image and an event sidebar, so "a Markdown-embedded
+image" was reported on pages that had none. Both are fixed.
+
 ### Date classification
 
 `tests/datetime.test.mjs` (24 cases) pins the clock to a fixed instant rather
