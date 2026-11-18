@@ -60,9 +60,12 @@ These came from the brief and still apply.
 - **No invented copy.** There is no written prose anywhere on the site: every
   heading, lead and label in `content/` is a visible placeholder, and the footer
   says so in plain words. The site is `noindex` until real copy lands — see §9.
-- **The emblem is a placeholder, not a substitute.** `components/LogoSlot.astro`
-  draws a dashed ring labelled "Logo" where the real mark goes. Nothing has been
-  drawn, traced or generated to stand in for it.
+- **The emblem is the society's own drawing.** Supplied 16 November 2026 as
+  `graphics/logo.jpg` and cropped out of that lock-up to
+  `public/media/graphics/logo-mark.png` — cropped and knocked out to
+  transparency, never redrawn or traced. `components/LogoSlot.astro` is still
+  there, and still draws the dashed ring, if `branding.logo` is ever `null`
+  again.
 - One project, minimal dependencies, committed lockfile, static output.
 
 ---
@@ -320,7 +323,8 @@ involves; treat the folder as B's design of record.
 | Illustration grounds driven by `src/config/artwork.ts` | Each file's background was colour-picked from the web-ready JPEG. Three distinct creams are in play, so one shared variable was not enough. |
 | Dropped `mix-blend-mode: multiply` on all artwork | Multiplying the artwork's cream against an identical page cream darkens it by ~29/255 — producing the visible rectangle it was meant to prevent. |
 | Avoided `define:vars` for the paper colours | Combined with `is:global` it stamped the custom properties onto ~50 elements per page. Replaced with one generated declaration in the head. |
-| Plain-text "Aegir" wordmark beside a round logo placeholder | The real emblem has not been supplied and the brief forbids inventing a substitute. One settings value replaces every instance. |
+| Plain-text "Aegir" wordmark kept beside the emblem | The supplied file is a lock-up that already carries the name and tagline, but at 3.5rem in the bar that lettering is a few pixels tall. The mark alone goes in the slot and the type beside it stays — see `ASSETS.md` §3. |
+| The emblem is not circle-clipped | The drawing breaks out of its own roundel at the horns and both arms, so the `border-radius: 50%` the placeholder used bit the artwork. The file carries alpha instead, which is what keeps it edge-free on any ground. |
 | B5 promoted to `Site.astro` with scope `.site` | The CSS scope `.dir-b5` was meaningless once there was one design. |
 | Direction B kept as files, not only in history | Requested. Recovering a design from a diff across six rounds of churn is not a five-minute job. |
 | The site is `noindex` | It carries placeholder copy and an inert signup button. Flagged in §9 so it is removed deliberately at launch. |
@@ -420,11 +424,10 @@ below requires a code change beyond the file named.
    `description`) and `content/pages/about.md` are placeholders throughout.
 4. **Committee names**, once the committee agrees to publication — plus optional
    biographies and photographs, in `content/settings/committee.json`.
-5. **The emblem artwork.** Not supplied. The header, menu and footer each show a
-   round placeholder at the size the real mark will occupy. A hand-drawn roundel
-   appears inside `reference-assets/photos/IMG_3815.PNG`, but that file is a
-   phone screenshot and far too soft to use — see `ASSETS.md` §3. Setting
-   `branding.logo` replaces every instance.
+5. ~~**The emblem artwork.**~~ Supplied 16 November 2026 and in place in the
+   header, menu and footer. The resolution is low — the drawn mark is about
+   228×226 — so better artwork would still be worth having, and `branding.logo`
+   is the one setting that swaps it. See `ASSETS.md` §3.
 6. **Event photographs and posters.** Four photographs are web-ready and
    committed; none is currently placed, because no event file references one.
    Six of the ten supplied photographs were held back — see `ASSETS.md` §2.

@@ -144,8 +144,11 @@ homepage and label wording.
 `branding.logo` and `branding.shareImage` are either `null` or an object with
 `src` and `alt`; `width` and `height` are optional, and are written out as
 `<img>` attributes when present (worth supplying — they stop the page jumping
-as the image loads). While `branding.logo` is `null` the header, menu and
-footer each show a dashed placeholder at the size the real mark will occupy.
+as the image loads). `branding.logo` is the society emblem, shown in the header,
+the mobile menu and the footer; set it back to `null` and all three fall back to
+a dashed placeholder. The file is used exactly as supplied, with no cropping or
+clipping, so a replacement should be roughly square and transparent — see
+`ASSETS.md` §3.
 
 Two keys to know about:
 

@@ -482,14 +482,20 @@ content:
             label: Emblem
             type: object
             description: >-
-              Leave the picture empty to keep the dashed "Logo" placeholder in
-              the header, menu and footer. Filling it in replaces all three at
-              once.
+              The society mark in the header, menu and footer. Changing the
+              picture changes all three at once. Empty it to fall back to a
+              dashed "Logo" placeholder.
             fields:
               - name: src
                 label: Emblem image
                 type: image
-                description: Brand artwork belongs in media/graphics.
+                description: >-
+                  Brand artwork belongs in media/graphics. Shown exactly as
+                  uploaded — use a PNG with a transparent background, roughly
+                  square, or its own background shows as a rectangle on the
+                  cream page. It renders about 44 pixels across in the header,
+                  so use the mark on its own, not a logo with lettering under
+                  it.
                 options:
                   media: images
                   path: public/media/graphics

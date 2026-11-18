@@ -3,6 +3,12 @@
   "tagline": "The Oxford beer society",
   "description": "Aegir is a beer society in Oxford. Tastings, brewery trips and socials through the year.",
   "branding": {
+    "logo": {
+      "src": "/media/graphics/logo-mark.png",
+      "alt": "The Aegir emblem — a horned-helmet figure inside a circle, drinking from a tall golden pint.",
+      "width": 240,
+      "height": 240
+    },
     "wordmark": "Aegir",
     "shareImage": {
       "src": "/media/graphics/share-bottle-walk.jpg",

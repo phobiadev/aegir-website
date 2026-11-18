@@ -1,15 +1,16 @@
 ---
 /**
- * Placeholder for the society's emblem.
+ * Fallback for the society's emblem.
  *
- * The real logo has not been supplied yet. It is a circular hand-drawn mark in
- * the same ink style as the four supplied illustrations — see `ASSETS.md` §3 —
- * so this placeholder is round, not a rectangle, and sized to the space the
- * real file will occupy.
+ * The real emblem is in place — `branding.logo` in `content/settings/site.json`
+ * points at `logo-mark.png`, see `ASSETS.md` §3 — so nothing on the site
+ * renders this today. It is kept because the header, menu and footer all branch
+ * on that one setting, and an editor can empty the Emblem box in the CMS at any
+ * time; this is what they get instead of three broken images.
  *
- * Every header and footer already branches on `site.logo`. The moment that
- * config value is set to a real file, these slots disappear and the artwork
- * takes their place; nothing else needs touching.
+ * It is round because the supplied mark is a roundel. Note that the real file
+ * is *not* circle-clipped: the drawing breaks out of its own circle at the
+ * horns and arms, so `img.bar__logo` and friends set no `border-radius`.
  */
 interface Props {
   /** Diameter, as any CSS length. */

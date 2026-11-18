@@ -138,44 +138,116 @@ any of these reach the live site, the people in them should be asked first.
 
 ## 3. Flagged files
 
-### `photos/IMG_3815.PNG` — 1206×2622 — probably the real emblem
+### `photos/IMG_3815.PNG` — 1206×2622 — a phone shot of the emblem
 
 This is a **phone screenshot of a profile-picture editor**, complete with status
-bar, a blurred background and Share / Copy link / QR code buttons. Inside it is a
-circular hand-drawn emblem: a horned-helmet figure drinking from a yellow pint.
+bar, a blurred background and Share / Copy link / QR code buttons. Inside it is
+the society emblem: a horned-helmet figure drinking from a yellow pint.
 
-It is almost certainly the society's real logo, but it is unusable as an asset —
-the drawing is paper photographed on a phone screen, occupies roughly 600px of a
-2622px-tall screenshot, and carries a grey cast from the display.
+It is the right mark but an unusable file — the drawing is paper photographed on
+a phone screen, occupies roughly 600px of a 2622px-tall screenshot, and carries
+a grey cast from the display. **It has not been cropped or used.** The emblem on
+the site comes from `graphics/logo.jpg` below instead.
 
-**It has not been cropped or used.** Please supply the original artwork.
+### `graphics/logo.jpg` — 286×382 — the supplied logo
 
-### The logo is still outstanding
+Supplied 16 November 2026. It is the full brand lock-up, not just the mark: the
+roundel sits above an "AEGIR" wordmark and an "OXFORD'S BEER SOCIETY" line, on
+the same cream as the illustrations (`#F6EEE1`). Resolution is low — the drawn
+mark inside it is only about 228×226 — so nothing derived from it is upscaled.
 
-`graphic-logo.*` was not supplied, as the brief anticipated. The site therefore
-renders **`src/components/LogoSlot.astro`** — a round dashed placeholder labelled
-"Logo" — next to the typographic "Aegir" wordmark, in the header, the mobile menu
-and the footer. It is round rather than rectangular because the real mark
-is a roundel in the same ink style as the four illustrations above.
+**The site uses the mark alone**, not the lock-up. Three reasons:
 
-The wordmark stays alongside the placeholder, and should stay alongside the real
-file too unless the emblem itself carries the society's name.
+1. `branding.logo` fills one slot that renders at 3.5rem in the header bar,
+   4rem in the mobile menu and 5.5rem in the footer. At 3.5rem the lock-up's
+   tagline would be about four pixels tall — unreadable, and the mark with it.
+   (The bar's `min-height` was raised from 4rem to 4.75rem to carry the mark at
+   3.5rem: at 4rem it had 4px of clearance top and bottom and read as crowded,
+   and at 3.875rem it ran into the rule along the bottom. The bar height is now
+   set by the emblem, not by the type — worth knowing before changing either.)
+2. All three slots already sit beside type that says the same thing: the bold
+   "Aegir" wordmark in the header and menu, and the society name plus tagline in
+   the footer. The lock-up would print the name twice in each.
+3. Portrait proportions in a 4rem sticky bar leave the mark tiny or the bar tall.
 
-**To add the real logo**, drop the file into `public/media/graphics/` and set
-`branding.logo` in `content/settings/site.json`:
+The lock-up is the right file for anywhere with room for it — a poster, a print
+header, a social avatar. It is not the right file for a 44px header slot.
 
-```json
-"logo": {
-  "src": "/media/graphics/graphic-logo.png",
-  "alt": "Aegir",
-  "width": 320,
-  "height": 320
-}
+**The mark is not circle-clipped.** The drawing breaks out of its own roundel:
+the horns clear the top of the circle and both arms clear its sides. A
+`border-radius: 50%` clip — which is what the round placeholder had — bites all
+three. The clip was removed from `img.bar__logo`, `img.foot__logo` and
+`.sheet__brand img` when the real file went in.
+
+### How the web-ready mark was derived
+
+`public/media/graphics/logo-mark.png`, 240×240, 20K. From `logo.jpg`, no
+upscaling and no redrawing:
+
+1. **Crop to the mark.** Ink in the original runs rows 45–270 and columns
+   26–253; the wordmark starts at row 272. Cropped to `(22, 40)–(258, 271)`,
+   which takes the whole mark and no part of the lettering.
+2. **Knock out the paper.** The cream around the mark was flood-filled to
+   transparent from the border, tolerance 24 on the summed RGB distance from
+   `#F6EEE1`. Flood-filling from the *outside* is what matters: this drawing is
+   unfilled line art, so its figure, the pint and the inside of the circle are
+   the same cream as the ground, and a plain colour key would punch holes
+   through all of them. Nothing was redrawn, recoloured or traced.
+3. **Centre on a square canvas** of 240×240, so one `width` in CSS gives a
+   predictable box in all three slots.
+4. **Quantise to 64 colours** — line art on flat paper, so this is visually
+   lossless, and it takes the file from 101K to 20K.
+
+Alpha is the reason this one file works in every slot. The other four
+illustrations are opaque JPEGs that need their section painted with their own
+cream; the emblem has no ground of its own to match, so it sits edge-free on the
+page cream, on `--shade`, or on either artwork paper without a rectangle
+following it around. That is also why it is a PNG and they are not.
+
+To reproduce it, or to redo it from better artwork if the society supplies some:
+
+```python
+from PIL import Image
+import numpy as np
+from collections import deque
+
+im = Image.open('reference-assets/graphics/logo.jpg').convert('RGB')
+region = im.crop((22, 40, 258, 271))
+a = np.asarray(region).astype(int)
+h, w, _ = a.shape
+bg = np.abs(a - np.array([246, 238, 225])).sum(axis=2) <= 24
+
+out = np.zeros((h, w), bool)
+q = deque()
+for y in range(h):
+    for x in range(w):
+        if (y in (0, h - 1) or x in (0, w - 1)) and bg[y, x] and not out[y, x]:
+            out[y, x] = True; q.append((y, x))
+while q:
+    y, x = q.popleft()
+    for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+        ny, nx = y + dy, x + dx
+        if 0 <= ny < h and 0 <= nx < w and bg[ny, nx] and not out[ny, nx]:
+            out[ny, nx] = True; q.append((ny, nx))
+
+mark = Image.fromarray(
+    np.dstack([a.astype(np.uint8), np.where(out, 0, 255).astype(np.uint8)]), 'RGBA')
+canvas = Image.new('RGBA', (240, 240), (0, 0, 0, 0))
+canvas.paste(mark, ((240 - w) // 2, (240 - h) // 2))
+canvas.quantize(colors=64, method=Image.FASTOCTREE).save(
+    'public/media/graphics/logo-mark.png', optimize=True)
 ```
 
-The header, the mobile menu and the footer each branch on that one value, so the
-single edit replaces every placeholder. Nothing else needs touching. (The
-Direction B backup still reads the stage-1 `legacy/site.ts` beside it.)
+### Replacing the emblem later
+
+`branding.logo` in `content/settings/site.json` is the only switch. The header,
+the mobile menu and the footer each branch on it, and `LogoSlot.astro` — the
+round dashed placeholder — is still what renders if it is ever set back to
+`null`. An editor can replace the file from Pages CMS under **Site settings →
+Brand images → Emblem**; whatever they upload is shown as-is, so a file with a
+baked-in cream background will show that cream as a rectangle. Anything replacing
+this one should be a transparent PNG, roughly square, and at least 240px.
+(The Direction B backup still reads the stage-1 `legacy/site.ts` beside it.)
 
 ---
 
@@ -196,6 +268,7 @@ as progressive JPEG.
 | `graphics/graphic-2.JPG` | `public/media/graphics/illus-disco.jpg` | 467×544 | 29K |
 | `graphics/graphic-3.JPG` | `public/media/graphics/illus-stein-dive.jpg` | 639×1200 | 50K |
 | `graphics/graphic-4.JPG` | `public/media/graphics/illus-pint-roundel.jpg` | 294×316 | 26K |
+| `graphics/logo.jpg` | `public/media/graphics/logo-mark.png` | 240×240 | 20K |
 | `photos/IMG_4013.HEIC` | `public/media/photos/photo-beer-tent.jpg` | 1600×1200 | 275K |
 | `photos/IMG_4231.JPG` | `public/media/photos/photo-festival-group.jpg` | 1560×1170 | 295K |
 | `photos/IMG_2919.JPG` | `public/media/photos/photo-garden-dusk.jpg` | 1050×1400 | 169K |
@@ -207,8 +280,12 @@ handled the conversion and Pillow did the resize.
 ### Favicon and sharing card — derived, not drawn
 
 Both come from the supplied illustrations by **cropping, scaling and padding
-only**. Nothing was drawn, traced or generated, and neither is a stand-in for
-the missing emblem.
+only**. Nothing was drawn, traced or generated.
+
+They predate the emblem and have not been redone from it: the supplied
+`logo.jpg` is 286px tall overall, so an icon cut from it would be far softer
+than one cut from the 1080px roundel illustration. Redoing the favicon from the
+emblem is worth doing if better logo artwork ever arrives.
 
 | File | Pixels | Derived from | How |
 |---|---|---|---|
@@ -269,11 +346,17 @@ No AI-generated images, no substitute logo, no code-drawn SVG or canvas artwork,
 and no Norse or Viking theme inferred from the name. Everything visual comes from
 the supplied files, plus ordinary CSS colour, type, borders and layout.
 
-The emblem placeholder deserves naming explicitly: it is a **dashed ring with the
-word "Logo" in it**, not an attempt at the real mark. No emblem has been drawn,
-traced from the screenshot, or generated. The favicon is a crop of the supplied
-pint roundel, which is not the society's emblem and is not presented as one; it
-is simply the supplied artwork that works at icon size.
+The emblem deserves naming explicitly. It is the society's own drawing, from the
+supplied `graphics/logo.jpg`. Deriving it was a **crop, a background knockout
+and a palette reduction** — see §3. No line was drawn, redrawn, traced from the
+phone screenshot, cleaned up or generated, and the lettering in the supplied
+lock-up was left out rather than re-set in a typeface. The dashed `LogoSlot`
+ring is still in the codebase as the fallback if `branding.logo` is emptied, and
+it is a placeholder marker, not an attempt at the mark.
+
+The favicon is a crop of the supplied pint roundel illustration, not of the
+emblem, and is not presented as the society's mark; it is simply the supplied
+artwork that works at icon size.
 
 The amber rules that mark where two creams meet are plain CSS borders, not drawn
 artwork.

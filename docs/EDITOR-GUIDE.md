@@ -183,11 +183,19 @@ Do not name people in it. Describe what is happening.
 
 - **Name as written in the header** — the society's name as text, beside the
   emblem.
-- **Emblem** — while this is empty, the header, menu and footer each show a
-  dashed circle with "Logo" in it, at the size the real mark will take. Upload
-  the emblem (into `media/graphics`) and fill in its description, and all three
-  change at once. Width and height in pixels are optional, but filling them in
-  stops the page jumping as the image loads.
+- **Emblem** — the society's mark, shown in the header, the mobile menu and
+  the footer. Changing it here changes all three at once. Width and height in
+  pixels are optional, but filling them in stops the page jumping as the image
+  loads. Empty this box and all three fall back to a dashed circle with "Logo"
+  in it.
+
+  Two things to know before you replace it. The picture is shown **exactly as
+  uploaded** — if it has a background of its own, that background shows as a
+  rectangle on the cream page, so use a PNG with a transparent background. And
+  the slot is small: in the header it is about 44 pixels across, so a mark with
+  lettering under it will be unreadable. The emblem in place now is the roundel
+  on its own, cropped out of the full logo; the society's name beside it is
+  text, which is why it stays sharp at any size.
 - **Sharing picture** — the picture that appears when a link to the site is
   pasted into WhatsApp, Instagram or a message. 1200 × 630 pixels works best.
 

@@ -171,9 +171,11 @@ Exercised through the fixtures and confirmed in a browser:
 - **Detail-page links:** every event and announcement row links to its page;
   breadcrumbs, "all events", "more events" and the 404's section links all
   resolve. The output scan found no broken internal reference in any build.
-- **Logos:** `branding.logo` is `null`, so the header, mobile menu and footer
-  each show the dashed `LogoSlot` placeholder at the size the real mark will
-  take — 2.375rem, 3.25rem and 4.5rem. Nothing has been drawn to stand in.
+- **Logos:** `branding.logo` was `null` at the time of this audit, so the
+  header, mobile menu and footer each showed the dashed `LogoSlot` placeholder.
+  **Superseded 2026-11-16:** the society supplied `graphics/logo.jpg` and the
+  mark derived from it now fills all three slots at 3.5rem, 4rem and 5.5rem.
+  See `ASSETS.md` §3. `LogoSlot` remains the fallback, at the same sizes.
 - **Uploaded images:** `public/media/uploads/` exists and is where `.pages.yml`
   points every photo field. No upload has been made yet.
 - **Images in Markdown:** the fixture announcement body carries one; it is
@@ -248,7 +250,8 @@ the events index, an event page, the about page's committee grid and mailing
 band, and the 390px phone layout. The design is intact — illustrations sit on
 their own cream with no visible edge, the amber rule marks each join, the
 ticket rows and perforated date stub read correctly, and the dashed logo and
-signup placeholders are legible as placeholders.
+signup placeholders are legible as placeholders. (The logo placeholder has
+since been replaced by the real emblem — see §6 item 7.)
 
 ### What the browser testing is **not**
 
@@ -316,7 +319,7 @@ template change — only the file named.
 | 4 | **Events** | `content/events/` (empty) | "Nothing is in the diary at the moment…" plus a signup button |
 | 5 | **Announcements** | `content/announcements/` (empty) | "No announcements have been posted yet." |
 | 6 | **The mailing-list signup URL** | `mailingList.url`, currently `null` | **Confirmed: the button stays visible and inactive** in all six places — header, mobile menu, hero, two empty states, both mailing bands and the footer. It is a `<button disabled>`, which cannot navigate or submit and announces itself as disabled; `href="#"` was rejected because it jumps the reader to the top. An explanatory note sits beneath it and in the footer. Pasting the URL in makes every instance a live link, with no other change. |
-| 7 | **The emblem** | `branding.logo`, currently `null` | A dashed round placeholder in the header, menu and footer, at the size the real mark will occupy |
+| 7 | ~~**The emblem**~~ — **supplied 2026-11-16** | `branding.logo` | Done. `logo-mark.png`, cropped out of the supplied lock-up and knocked out to transparency, in the header, menu and footer. The lock-up's own wordmark and tagline are not used: the type beside each slot already says both. See `ASSETS.md` §3. |
 | 8 | **Event photographs and posters** | `image` / `imageAlt` on an event | Four photographs are web-ready and committed but unplaced; a row with no picture renders without one |
 | 9 | **A contact email** | `contact.email`, currently `null` | Omitted from the footer entirely |
 | 10 | **Booking links** | `bookingUrl` on an event | The booking button appears only when one is set; no event exists yet |
